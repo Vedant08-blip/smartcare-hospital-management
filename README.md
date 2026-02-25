@@ -1,6 +1,6 @@
 # SmartCare – Hospital Management System
 
-A modern, professional Hospital Management System frontend built with React.js and Tailwind CSS.
+A modern, professional Hospital Management System with React.js frontend and Node.js/Express backend.
 
 ## 🚀 Features
 
@@ -10,9 +10,12 @@ A modern, professional Hospital Management System frontend built with React.js a
 - **Dashboard Analytics**: Visual charts and statistics
 - **Appointment Management**: Book and manage appointments
 - **Profile Management**: User profile pages for all roles
+- **JWT Authentication**: Secure login with JSON Web Tokens
+- **RESTful API**: Full backend API for data management
 
 ## 🛠️ Tech Stack
 
+### Frontend
 - **React.js 18** - Frontend library
 - **Tailwind CSS** - Styling framework
 - **React Router** - Client-side routing
@@ -20,8 +23,16 @@ A modern, professional Hospital Management System frontend built with React.js a
 - **Lucide React** - Icon library
 - **Vite** - Build tool
 
+### Backend
+- **Node.js** - JavaScript runtime
+- **Express.js** - Web framework
+- **JSON Web Token (JWT)** - Authentication
+- **bcryptjs** - Password hashing
+- **CORS** - Cross-origin resource sharing
+
 ## 📦 Installation
 
+### Frontend
 ```bash
 # Clone the repository
 git clone https://github.com/Vedant08-blip/smartcare-hospital-management.git
@@ -33,16 +44,81 @@ cd smartcare-hospital-management
 npm install
 ```
 
+### Backend
+```bash
+# Navigate to backend directory
+cd smartcare-backend
+
+# Install dependencies
+npm install
+```
+
 ## 🏃 Running the Application
 
+### Start Backend
+```bash
+cd smartcare-backend
+npm start
+```
+The backend will start on `http://localhost:5002`
+
+### Start Frontend
 ```bash
 npm run dev
 ```
+The application will start on `http://localhost:5173`
 
-The application will start on `http://localhost:3000`
+## 🔑 Login Credentials (Demo)
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | admin@smartcare.com | 123456 |
+| Doctor | doctor@smartcare.com | 123456 |
+| Patient | patient@email.com | 123456 |
+
+## 📡 API Endpoints
+
+### Authentication
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/login | User login |
+| GET | /api/auth/verify | Verify JWT token |
+
+### Doctors
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/doctors | Get all doctors |
+| GET | /api/doctors/:id | Get doctor by ID |
+| POST | /api/doctors | Create new doctor |
+| PUT | /api/doctors/:id | Update doctor |
+| DELETE | /api/doctors/:id | Delete doctor |
+
+### Patients
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/patients | Get all patients |
+| GET | /api/patients/:id | Get patient by ID |
+| POST | /api/patients | Create new patient |
+| PUT | /api/patients/:id | Update patient |
+| DELETE | /api/patients/:id | Delete patient |
+
+### Appointments
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/appointments | Get all appointments |
+| GET | /api/appointments/:id | Get appointment by ID |
+| POST | /api/appointments | Create new appointment |
+| PUT | /api/appointments/:id | Update appointment |
+| DELETE | /api/appointments/:id | Cancel appointment |
+
+### Statistics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | /api/stats | Get dashboard statistics |
 
 ## 📁 Project Structure
 
+### Frontend
 ```
 src/
 ├── components/           # Reusable UI components
@@ -53,29 +129,26 @@ src/
 │   └── StatusBadge.jsx  # Status indicator badge
 ├── pages/               # Page components
 │   ├── LandingPage.jsx  # Home/landing page
-│   ├── LoginPage.jsx   # Authentication page
-│   ├── ServicesPage.jsx# Services information
+│   ├── LoginPage.jsx    # Authentication page
+│   ├── ServicesPage.jsx # Services information
 │   ├── admin/           # Admin role pages
-│   │   ├── AdminDashboard.jsx
-│   │   ├── AdminProfile.jsx
-│   │   ├── AppointmentsOverview.jsx
-│   │   ├── ManageDoctors.jsx
-│   │   └── ManagePatients.jsx
 │   ├── doctor/          # Doctor role pages
-│   │   ├── DoctorDashboard.jsx
-│   │   ├── DoctorAppointments.jsx
-│   │   ├── DoctorPatients.jsx
-│   │   └── DoctorProfile.jsx
 │   └── patient/         # Patient role pages
-│       ├── PatientDashboard.jsx
-│       ├── BookAppointment.jsx
-│       ├── MyAppointments.jsx
-│       └── PatientProfile.jsx
+├── services/
+│   └── api.js           # API service layer
 ├── data/
-│   └── dummyData.js     # Sample data for the application
-├── App.jsx              # Main app component with routing
+│   └── dummyData.js     # Sample data
+├── App.jsx              # Main app component
 ├── main.jsx             # Application entry point
 └── index.css            # Global styles
+```
+
+### Backend
+```
+smartcare-backend/
+├── package.json         # Backend dependencies
+├── server.js            # Express server & routes
+├── .env                # Environment variables
 ```
 
 ## 🧭 Route Structure
@@ -160,12 +233,11 @@ A badge component for displaying status.
 **Props:**
 - `status` (string): Status type ('pending', 'confirmed', 'completed', 'cancelled')
 
-## 📝 Notes
+## 💾 Data Storage
 
-- This is a frontend-only implementation
-- No backend logic or authentication included
-- Ready to connect with backend APIs later
-- Uses dummy data from `src/data/dummyData.js`
+- **Frontend**: Uses `src/data/dummyData.js` for static demo data
+- **Backend**: Uses in-memory storage (data resets on server restart)
+- **Future**: MongoDB integration can be added for permanent storage
 
 ## 🎨 Color Scheme
 
@@ -176,6 +248,13 @@ A badge component for displaying status.
 - **Surface**: #FFFFFF
 - **Text Primary**: #212121
 - **Text Secondary**: #757575
+
+## 📝 Notes
+
+- The backend stores data in memory - data will reset when the server restarts
+- JWT tokens expire after 24 hours
+- CORS is enabled for local development
+- Frontend and backend run on different ports (5173 and 5002)
 
 ## 📄 License
 
