@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-import { Stethoscope, Shield, Heart } from "lucide-react";
+import { authAPI } from "../services/api";
+import {
+  Stethoscope,
+  Shield,
+  Heart,
+  Eye,
+  EyeOff,
+  Loader2
+} from "lucide-react";
 
 /* -------------------- ROLE CONFIG -------------------- */
 
@@ -9,61 +17,74 @@ const ROLES = [
   {
     id: "admin",
     name: "Admin",
-    icon: Shield,
     description: "Manage hospital operations and users",
-    theme: {
-      bg: "bg-red-50",
-      border: "border-red-300",
-      text: "text-red-700",
-      iconBg: "bg-red-100",
-    },
+    icon: Shield,
+    color: "red",
+    demo: "admin@smartcare.com",
   },
   {
     id: "doctor",
     name: "Doctor",
-    icon: Stethoscope,
     description: "View appointments and patient records",
-    theme: {
-      bg: "bg-blue-50",
-      border: "border-blue-300",
-      text: "text-blue-700",
-      iconBg: "bg-blue-100",
-    },
+    icon: Stethoscope,
+    color: "blue",
+    demo: "doctor@smartcare.com",
   },
   {
     id: "patient",
     name: "Patient",
-    icon: Heart,
     description: "Book appointments and manage health",
-    theme: {
-      bg: "bg-green-50",
-      border: "border-green-300",
-      text: "text-green-700",
-      iconBg: "bg-green-100",
-    },
+    icon: Heart,
+    color: "green",
+    demo: "patient@smartcare.com",
   },
 ];
 
 /* -------------------- COMPONENT -------------------- */
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
   const [role, setRole] = useState(null);
   const [form, setForm] = useState({ email: "", password: "" });
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const selectedRole = ROLES.find((r) => r.id === role);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!role || !form.email || !form.password) return;
+    if (!role) return setError("Please select a role");
+    if (!form.email || !form.password)
+      return setError("All fields are required");
 
-    // Frontend-only navigation
-    navigate(`/${role}/dashboard`);
+    setLoading(true);
+    setError("");
+
+    try {
+      const data = await authAPI.login(form.email, form.password, role);
+      
+      if (data.token) {
+        navigate(`/${role}/dashboard`);
+      } else {
+        setError(data.message || "Login failed");
+      }
+    } catch (err) {
+      setError(err.message || "Server error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fillDemo = () => {
+    setForm({ email: selectedRole.demo, password: "123456" });
   };
 
   return (
@@ -72,56 +93,65 @@ const LoginPage = () => {
 
       <main className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-12">
         <div className="w-full max-w-4xl">
-          {/* -------- Header -------- */}
+          {/* Header */}
           <header className="text-center mb-10">
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-2">
+            <h1 className="text-4xl font-extrabold text-gray-900">
               Welcome Back
             </h1>
-            <p className="text-gray-600">
-              Sign in to continue to SmartCare
+            <p className="text-gray-600 mt-2">
+              Secure login to SmartCare Hospital System
             </p>
           </header>
 
-          {/* -------- Role Selection -------- */}
+          {/* Role Selection */}
           <section className="grid gap-6 md:grid-cols-3 mb-10">
-            {ROLES.map(({ id, name, icon: Icon, description, theme }) => {
+            {ROLES.map(({ id, name, description, icon: Icon, color }) => {
               const active = role === id;
-
               return (
                 <button
                   key={id}
                   onClick={() => setRole(id)}
-                  aria-pressed={active}
                   className={`card text-center transition-all duration-300 
-                    ${active ? `${theme.bg} ${theme.border} border-2` : "hover:border-primary-300"}
+                    ${active ? `border-2 border-${color}-400 bg-${color}-50` : "hover:border-primary-300"}
                   `}
                 >
                   <div
                     className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full 
-                      ${active ? theme.iconBg : "bg-gray-100"}
+                      ${active ? `bg-${color}-100` : "bg-gray-100"}
                     `}
                   >
                     <Icon
                       className={`h-8 w-8 ${
-                        active ? theme.text : "text-gray-500"
+                        active ? `text-${color}-600` : "text-gray-500"
                       }`}
                     />
                   </div>
-                  <h3 className="text-lg font-semibold">{name}</h3>
+                  <h3 className="font-semibold text-lg">{name}</h3>
                   <p className="text-sm text-gray-600">{description}</p>
                 </button>
               );
             })}
           </section>
 
-          {/* -------- Login Form -------- */}
+          {/* Login Form */}
           {selectedRole && (
-            <section className="card max-w-md mx-auto">
-              <form
-                onSubmit={handleLogin}
-                className="space-y-6"
-                aria-label="Login Form"
-              >
+            <section className="card max-w-md mx-auto animate-fadeIn">
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="text-center mb-2">
+                  <p className="text-sm text-gray-600">
+                    Logging in as{" "}
+                    <span className="font-semibold text-primary-600">
+                      {selectedRole.name}
+                    </span>
+                  </p>
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
+                    {error}
+                  </div>
+                )}
+
                 <div>
                   <label className="block text-sm font-medium mb-2">
                     Email Address
@@ -131,45 +161,58 @@ const LoginPage = () => {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    placeholder="name@example.com"
                     className="input-field"
-                    required
+                    placeholder="name@example.com"
                   />
                 </div>
 
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium mb-2">
                     Password
                   </label>
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     name="password"
                     value={form.password}
                     onChange={handleChange}
+                    className="input-field pr-10"
                     placeholder="••••••••"
-                    className="input-field"
-                    required
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-9 text-gray-400 hover:text-gray-600"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
 
-                <div className="flex items-center justify-between text-sm">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                    />
-                    Remember me
-                  </label>
-                  <span className="text-primary-600 hover:underline cursor-pointer">
+                <div className="flex justify-between text-sm">
+                  <button
+                    type="button"
+                    onClick={fillDemo}
+                    className="text-primary-600 hover:underline"
+                  >
+                    Use demo credentials
+                  </button>
+                  <span className="text-primary-600 cursor-pointer hover:underline">
                     Forgot password?
                   </span>
                 </div>
 
                 <button
                   type="submit"
-                  className="btn-primary w-full py-3 text-lg"
+                  disabled={loading}
+                  className="btn-primary w-full py-3 flex justify-center items-center gap-2"
                 >
-                  Sign in as {selectedRole.name}
+                  {loading ? (
+                    <>
+                      <Loader2 className="animate-spin" size={18} />
+                      Signing in...
+                    </>
+                  ) : (
+                    `Sign in as ${selectedRole.name}`
+                  )}
                 </button>
               </form>
 
