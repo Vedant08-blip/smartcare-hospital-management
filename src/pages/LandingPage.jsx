@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import { motion } from "framer-motion";
 import {
   Stethoscope,
   Heart,
@@ -7,7 +8,11 @@ import {
   Clock,
   Users,
   Award,
+  Github,
+  Linkedin,
+  Mail,
 } from "lucide-react";
+
 
 /* -------------------- DATA -------------------- */
 
@@ -45,6 +50,34 @@ const STATS = [
   { id: 4, icon: Stethoscope, value: "20+", label: "Specializations" },
 ];
 
+/* -------------------- ANIMATION VARIANTS -------------------- */
+
+const statVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: {
+      delay: i * 0.15,
+      duration: 0.5,
+      ease: "easeOut",
+    },
+  }),
+};
+
+const iconVariants = {
+  hidden: { scale: 0 },
+  visible: (i) => ({
+    scale: 1,
+    transition: {
+      delay: i * 0.15 + 0.2,
+      duration: 0.4,
+      type: "spring",
+      stiffness: 200,
+    },
+  }),
+};
+
 /* -------------------- COMPONENT -------------------- */
 
 const LandingPage = () => {
@@ -53,8 +86,8 @@ const LandingPage = () => {
       <Navbar />
 
       <main>
-        {/* ---------------- Hero Section ---------------- */}
-        <header className="bg-gradient-to-br from-primary-50 via-white to-medical-light py-24 px-4">
+      {/* ---------------- Hero Section ---------------- */}
+      <header className="bg-gradient-to-br from-primary-50 via-white to-[#e3f2fd] py-24 px-4">
           <div className="max-w-7xl mx-auto text-center">
             <h1 className="text-5xl md:text-6xl font-extrabold mb-6">
               SmartCare Hospital
@@ -86,14 +119,33 @@ const LandingPage = () => {
         {/* ---------------- Stats Section ---------------- */}
         <section className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-10">
-            {STATS.map(({ id, icon: Icon, value, label }) => (
-              <div key={id} className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100">
+            {STATS.map(({ id, icon: Icon, value, label }, i) => (
+              <motion.div
+                key={id}
+                custom={i}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.5 }}
+                variants={statVariants}
+                className="text-center"
+              >
+                <motion.div
+                  custom={i}
+                  variants={iconVariants}
+                  className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary-100"
+                >
                   <Icon className="h-8 w-8 text-primary-600" />
-                </div>
-                <p className="text-3xl font-bold">{value}</p>
+                </motion.div>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  transition={{ delay: i * 0.15 + 0.4, duration: 0.5 }}
+                  className="text-3xl font-bold"
+                >
+                  {value}
+                </motion.p>
                 <p className="text-gray-600">{label}</p>
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
@@ -146,23 +198,62 @@ const LandingPage = () => {
         </section>
       </main>
 
+      
       {/* ---------------- Footer ---------------- */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Stethoscope className="h-6 w-6 text-primary-400" />
-            <span className="text-xl font-bold">SmartCare</span>
-          </div>
-          <p className="text-gray-400 mb-2">
-            Hospital Management System
-          </p>
-          <p className="text-sm text-gray-500">
-            © 2026 SmartCare Hospital. All rights reserved.
-          </p>
-        </div>
-      </footer>
+<footer className="bg-gray-900 text-white py-12">
+  <div className="max-w-7xl mx-auto px-4 text-center">
+
+    {/* Logo */}
+    <div className="flex items-center justify-center gap-2 mb-4">
+      <Stethoscope className="h-6 w-6 text-primary-400" />
+      <span className="text-xl font-bold">SmartCare</span>
+    </div>
+
+    <p className="text-gray-400 mb-4">
+      Hospital Management System
+    </p>
+
+    {/* Social Icons */}
+    <div className="flex justify-center gap-6 mb-6">
+      <a
+        href="#"
+        className="text-gray-400 hover:text-primary-400 transition-transform hover:scale-110"
+      >
+        <Github className="h-6 w-6" />
+      </a>
+
+      <a
+        href="#"
+        className="text-gray-400 hover:text-primary-400 transition-transform hover:scale-110"
+      >
+        <Linkedin className="h-6 w-6" />
+      </a>
+
+      <a
+        href="#"
+        className="text-gray-400 hover:text-primary-400 transition-transform hover:scale-110"
+      >
+        <Mail className="h-6 w-6" />
+      </a>
+    </div>
+
+    {/* Developer Credit */}
+    <p className="text-sm text-gray-500">
+      Managed & Developed by{" "}
+      <span className="text-primary-400 font-medium">
+        Vedant Trivedi
+      </span>
+    </p>
+
+    <p className="text-xs text-gray-600 mt-2">
+      © 2026 SmartCare Hospital. All rights reserved.
+    </p>
+
+  </div>
+</footer>
     </div>
   );
 };
 
 export default LandingPage;
+ 
