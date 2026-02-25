@@ -36,7 +36,7 @@ const ROLES = [
     description: "Book appointments and manage health",
     icon: Heart,
     color: "green",
-    demo: "patient@smartcare.com",
+    demo: "patient@email.com",
   },
 ];
 
