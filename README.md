@@ -84,32 +84,6 @@ The application will start on `http://localhost:5173`
 | POST | /api/auth/login | User login |
 | GET | /api/auth/verify | Verify JWT token |
 
-### Doctors
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/doctors | Get all doctors |
-| GET | /api/doctors/:id | Get doctor by ID |
-| POST | /api/doctors | Create new doctor |
-| PUT | /api/doctors/:id | Update doctor |
-| DELETE | /api/doctors/:id | Delete doctor |
-
-### Patients
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/patients | Get all patients |
-| GET | /api/patients/:id | Get patient by ID |
-| POST | /api/patients | Create new patient |
-| PUT | /api/patients/:id | Update patient |
-| DELETE | /api/patients/:id | Delete patient |
-
-### Appointments
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | /api/appointments | Get all appointments |
-| GET | /api/appointments/:id | Get appointment by ID |
-| POST | /api/appointments | Create new appointment |
-| PUT | /api/appointments/:id | Update appointment |
-| DELETE | /api/appointments/:id | Cancel appointment |
 
 ### Statistics
 | Method | Endpoint | Description |
@@ -185,69 +159,11 @@ smartcare-backend/
 | `/patient/appointments` | MyAppointments | View appointment history |
 | `/patient/profile` | PatientProfile | Patient profile settings |
 
-## 👥 User Roles
-
-### Admin
-- View overall statistics and analytics
-- Manage doctor records (add, edit, remove)
-- Manage patient records
-- View all appointments
-- Update profile settings
-
-### Doctor
-- View personal dashboard
-- View and manage appointments
-- View patient list
-- Update profile settings
-
-### Patient
-- View personal dashboard
-- Book new appointments
-- View appointment history
-- Update profile settings
-
-## 🔧 Component Details
-
-### StatCard
-A reusable card component for displaying statistics with icons.
-
-**Props:**
-- `title` (string): Card title
-- `value` (string/number): Stat value
-- `icon` (Component): Lucide icon component
-- `color` (string): Color theme ('primary', 'blue', 'teal', 'green', 'orange')
-- `trend` (number): Optional trend percentage
-
-### Modal
-A reusable modal component for dialogs.
-
-**Props:**
-- `isOpen` (boolean): Control modal visibility
-- `onClose` (function): Close handler
-- `title` (string): Modal title
-- `children` (node): Modal content
-
-### StatusBadge
-A badge component for displaying status.
-
-**Props:**
-- `status` (string): Status type ('pending', 'confirmed', 'completed', 'cancelled')
-
 ## 💾 Data Storage
 
 - **Frontend**: Uses `src/data/dummyData.js` for static demo data
 - **Backend**: Uses in-memory storage (data resets on server restart)
 - **Future**: MongoDB integration can be added for permanent storage
-
-## 🎨 Color Scheme
-
-- **Primary**: #00BCD4 (Cyan)
-- **Primary Dark**: #0097A7
-- **Primary Light**: #B2EBF2
-- **Background**: #F5F5F5
-- **Surface**: #FFFFFF
-- **Text Primary**: #212121
-- **Text Secondary**: #757575
 
 ## 📝 Notes
 
