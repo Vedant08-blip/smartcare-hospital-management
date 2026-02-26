@@ -2,12 +2,11 @@ import { useState } from "react";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { doctors as initialDoctors } from "../../data/dummyData";
-import { Stethoscope, Mail, Phone, Edit, Trash2 } from "lucide-react";
+import { Mail, Phone, Edit, Trash2 } from "lucide-react";
 
 const ManageDoctors = () => {
   const [doctors, setDoctors] = useState(initialDoctors);
   const [isOpen, setIsOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
   const [currentDoctor, setCurrentDoctor] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -19,28 +18,16 @@ const ManageDoctors = () => {
     image: "https://via.placeholder.com/150"
   });
 
-  // Handle Input Change
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  // Add Doctor
-  const handleAddDoctor = () => {
-    const newDoctor = {
-      id: Date.now(),
-      ...formData
-    };
-    setDoctors([...doctors, newDoctor]);
-    setIsOpen(false);
-    resetForm();
-  };
-
   // Edit Doctor
   const handleEditDoctor = (doctor) => {
-    setIsEditing(true);
     setIsOpen(true);
     setCurrentDoctor(doctor);
     setFormData(doctor);
+  };
+
+  // Handle Input Change
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleUpdateDoctor = () => {
@@ -49,7 +36,6 @@ const ManageDoctors = () => {
     );
     setDoctors(updatedDoctors);
     setIsOpen(false);
-    setIsEditing(false);
     resetForm();
   };
 
@@ -136,7 +122,7 @@ const ManageDoctors = () => {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
           <div className="bg-white p-6 rounded-xl w-96">
             <h2 className="text-xl font-bold mb-4">
-              {isEditing ? "Edit Doctor" : "Add Doctor"}
+              Edit Doctor
             </h2>
 
             <input
@@ -183,21 +169,12 @@ const ManageDoctors = () => {
                 Cancel
               </button>
 
-              {isEditing ? (
-                <button
-                  onClick={handleUpdateDoctor}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Update
-                </button>
-              ) : (
-                <button
-                  onClick={handleAddDoctor}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Add
-                </button>
-              )}
+              <button
+                onClick={handleUpdateDoctor}
+                className="px-4 py-2 bg-blue-600 text-white rounded"
+              >
+                Update
+              </button>
             </div>
           </div>
         </div>
