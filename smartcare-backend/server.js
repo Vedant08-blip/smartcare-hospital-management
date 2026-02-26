@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5002;
 const JWT_SECRET = process.env.JWT_SECRET || 'smartcare_secret_key_2024';
 
 // Middleware
