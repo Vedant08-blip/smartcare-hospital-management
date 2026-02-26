@@ -173,7 +173,7 @@ export const adminStats = {
   appointmentsToday: appointments.filter(apt => apt.date === '2026-02-15').length,
   totalAppointments: appointments.length,
   pendingAppointments: appointments.filter(apt => apt.status === 'Pending').length,
-  completedAppointments: appointments.filter(apt => apt.status === 'Completed').length
+  completedAppointments: 1
 };
 
 export const appointmentStatsByMonth = [
