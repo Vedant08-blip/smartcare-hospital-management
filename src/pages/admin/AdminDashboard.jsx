@@ -152,15 +152,7 @@ const AdminDashboard = () => {
               <div className="bg-white p-6 rounded-xl shadow">
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
 
-                <div className="grid md:grid-cols-3 gap-4">
-                  <button
-                    onClick={() => setCurrentView('addDoctor')}
-                    className="p-5 bg-blue-50 rounded-xl hover:bg-blue-100 transition"
-                  >
-                    <Stethoscope className="mb-2 text-blue-600" />
-                    Add Doctor
-                  </button>
-
+                <div className="grid md:grid-cols-2 gap-4">
                   <button
                     onClick={() => setCurrentView('addPatient')}
                     className="p-5 bg-green-50 rounded-xl hover:bg-green-100 transition"
@@ -179,28 +171,6 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </>
-          )}
-
-          {/* =============================
-               ADD DOCTOR VIEW
-          ==============================*/}
-          {currentView === 'addDoctor' && (
-            <div className="bg-white p-6 rounded-xl shadow">
-              <BackButton />
-              <h2 className="text-xl font-semibold mb-4">Add Doctor</h2>
-
-              <input
-                type="text"
-                placeholder="Doctor Name"
-                className="input-field mb-3"
-              />
-              <input
-                type="text"
-                placeholder="Specialization"
-                className="input-field mb-3"
-              />
-              <button className="btn-primary">Save Doctor</button>
-            </div>
           )}
 
           {/* =============================
