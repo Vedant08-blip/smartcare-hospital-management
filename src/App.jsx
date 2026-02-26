@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import ServicesPage from './pages/ServicesPage';
+import DoctorRegistration from './pages/DoctorRegistration';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -32,6 +33,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/register-doctor" element={<DoctorRegistration />} />
 
         {/* Admin Routes */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

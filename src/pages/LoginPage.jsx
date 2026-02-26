@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { authAPI } from "../services/api";
 import {
@@ -8,7 +8,8 @@ import {
   Heart,
   Eye,
   EyeOff,
-  Loader2
+  Loader2,
+  ArrowLeft,
 } from "lucide-react";
 
 /* -------------------- ROLE CONFIG -------------------- */
@@ -44,14 +45,26 @@ const ROLES = [
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preselectedRole = searchParams.get("role");
 
-  const [role, setRole] = useState(null);
+  const [role, setRole] = useState(preselectedRole || null);
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Auto-select role if provided in URL
+  useEffect(() => {
+    if (preselectedRole && ROLES.find((r) => r.id === preselectedRole)) {
+      setRole(preselectedRole);
+    }
+  }, [preselectedRole]);
+
   const selectedRole = ROLES.find((r) => r.id === role);
+
+  // Check if we should show role selection (no preselected role)
+  const showRoleSelection = !preselectedRole;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -96,42 +109,59 @@ const LoginPage = () => {
           {/* Header */}
           <header className="text-center mb-10">
             <h1 className="text-4xl font-extrabold text-gray-900">
-              Welcome Back
+              {showRoleSelection ? "Welcome Back" : `${selectedRole?.name} Login`}
             </h1>
             <p className="text-gray-600 mt-2">
-              Secure login to SmartCare Hospital System
+              {showRoleSelection 
+                ? "Secure login to SmartCare Hospital System" 
+                : "Sign in to access your dashboard"}
             </p>
           </header>
 
+          {/* Back Button (when role is preselected) */}
+          {showRoleSelection === false && (
+            <div className="mb-6">
+              <button
+                onClick={() => navigate("/login")}
+                className="flex items-center gap-2 text-primary-600 hover:text-primary-800 transition-colors"
+              >
+                <ArrowLeft size={18} />
+                <span>Choose different role</span>
+              </button>
+            </div>
+          )}
+
           {/* Role Selection */}
-          <section className="grid gap-6 md:grid-cols-3 mb-10">
-            {ROLES.map(({ id, name, description, icon: Icon, color }) => {
-              const active = role === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => setRole(id)}
-                  className={`card text-center transition-all duration-300 
-                    ${active ? `border-2 border-${color}-400 bg-${color}-50` : "hover:border-primary-300"}
-                  `}
-                >
-                  <div
-                    className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full 
-                      ${active ? `bg-${color}-100` : "bg-gray-100"}
+          {showRoleSelection && (
+            <section className="grid gap-6 md:grid-cols-3 mb-10">
+              {ROLES.map(({ id, name, description, icon: Icon, color }) => {
+                const active = role === id;
+                return (
+                  <button
+                    key={id}
+                    onClick={() => setRole(id)}
+                    className={`card text-center transition-all duration-300 
+                      ${active ? `border-2 border-${color}-400 bg-${color}-50` : "hover:border-primary-300"}
                     `}
                   >
-                    <Icon
-                      className={`h-8 w-8 ${
-                        active ? `text-${color}-600` : "text-gray-500"
-                      }`}
-                    />
-                  </div>
-                  <h3 className="font-semibold text-lg">{name}</h3>
-                  <p className="text-sm text-gray-600">{description}</p>
-                </button>
-              );
-            })}
-          </section>
+                    <div
+                      className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full 
+                        ${active ? `bg-${color}-100` : "bg-gray-100"}
+                      `}
+                    >
+                      <Icon
+                        className={`h-8 w-8 ${
+                          active ? `text-${color}-600` : "text-gray-500"
+                        }`}
+                      />
+                    </div>
+                    <h3 className="font-semibold text-lg">{name}</h3>
+                    <p className="text-sm text-gray-600">{description}</p>
+                  </button>
+                );
+              })}
+            </section>
+          )}
 
           {/* Login Form */}
           {selectedRole && (
