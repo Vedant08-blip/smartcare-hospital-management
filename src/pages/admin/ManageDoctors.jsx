@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import { doctors as initialDoctors } from "../../data/dummyData";
-import { Stethoscope, Mail, Phone, Plus, Edit, Trash2 } from "lucide-react";
+import { Stethoscope, Mail, Phone, Edit, Trash2 } from "lucide-react";
 
 const ManageDoctors = () => {
   const [doctors, setDoctors] = useState(initialDoctors);
@@ -82,14 +82,6 @@ const ManageDoctors = () => {
               <h1 className="text-3xl font-bold">Manage Doctors</h1>
               <p className="text-gray-600">View and manage doctors</p>
             </div>
-
-            <button
-              onClick={() => setIsOpen(true)}
-              className="btn-primary flex items-center space-x-2"
-            >
-              <Plus className="h-5 w-5" />
-              <span>Add Doctor</span>
-            </button>
           </div>
 
           {/* Doctors Grid */}
