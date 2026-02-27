@@ -22,13 +22,22 @@ const localPatients = [
   { id: 4, name: 'Maria Garcia', email: 'maria.garcia@email.com', phone: '+1 234-567-8913', age: 31, gender: 'Female', address: '321 Elm St, City, State', bloodGroup: 'AB+', image: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=2196f3&color=fff&size=128' }
 ];
 
-let localAppointments = [
-  { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-15', time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
-  { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: '2026-02-15', time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
-  { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-14', time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
-  { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: '2026-02-16', time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
-  { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: '2026-02-17', time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
-];
+// Initialize local appointments from localStorage or use default
+const getInitialAppointments = () => {
+  const stored = localStorage.getItem('localAppointments');
+  if (stored) {
+    return JSON.parse(stored);
+  }
+  return [
+    { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-15', time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
+    { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: '2026-02-15', time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
+    { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-14', time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
+    { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: '2026-02-16', time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
+    { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: '2026-02-17', time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
+  ];
+};
+
+let localAppointments = getInitialAppointments();
 
 // Auth credentials (for local mode)
 const LOCAL_USERS = [
@@ -37,6 +46,12 @@ const LOCAL_USERS = [
   { id: 3, email: 'patient@email.com', password: '123456', role: 'patient', name: 'John Doe' },
   { id: 4, email: 'patient2@email.com', password: '123456', role: 'patient', name: 'Jane Smith' }
 ];
+
+// Map user IDs to patient IDs for appointment filtering
+const USER_ID_TO_PATIENT_ID = {
+  3: 1, // John Doe (user id 3) -> patient id 1
+  4: 2  // Jane Smith (user id 4) -> patient id 2
+};
 
 // Debug function to log API calls
 const logApiCall = (method, endpoint, status, error = null) => {
@@ -100,27 +115,41 @@ const handleLocalGetDoctors = () => localDoctors;
 const handleLocalGetPatients = () => localPatients;
 
 const handleLocalGetAppointments = (role, userId) => {
+  // Reload from localStorage to get latest appointments
+  const stored = localStorage.getItem('localAppointments');
+  if (stored) {
+    localAppointments = JSON.parse(stored);
+  }
+  
+  // Convert userId to patientId if needed
+  const patientId = USER_ID_TO_PATIENT_ID[userId] || userId;
+  
   let filtered = [...localAppointments];
   
   if (role === 'patient') {
-    filtered = localAppointments.filter(a => a.patientId === userId);
+    filtered = localAppointments.filter(a => a.patientId === patientId);
   } else if (role === 'doctor') {
     filtered = localAppointments.filter(a => a.doctorId === userId);
   }
+  console.log('[API] Getting appointments for', role, 'userId:', userId, 'patientId:', patientId, 'Total:', filtered.length);
   return filtered;
 };
 
 const handleLocalCreateAppointment = (data) => {
   const { patientId, doctorId, date, time, reason } = data;
+  
+  // Convert userId to patientId if needed (userId is the user account id, not patient id)
+  const actualPatientId = USER_ID_TO_PATIENT_ID[patientId] || patientId;
+  
   const doctor = localDoctors.find(d => d.id === doctorId);
-  const patient = localPatients.find(p => p.id === patientId);
+  const patient = localPatients.find(p => p.id === actualPatientId);
   
   if (!doctor) throw new Error('Doctor not found');
   if (!patient) throw new Error('Patient not found');
   
   const newAppointment = {
     id: Date.now(),
-    patientId, 
+    patientId: actualPatientId, 
     patientName: patient.name,
     doctorId, 
     doctorName: doctor.name,
@@ -131,6 +160,11 @@ const handleLocalCreateAppointment = (data) => {
     reason
   };
   localAppointments.push(newAppointment);
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
+  console.log('[API] New appointment saved:', newAppointment);
+  
   return newAppointment;
 };
 
