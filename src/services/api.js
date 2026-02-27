@@ -11,14 +11,28 @@ const fetchWithAuth = async (endpoint, options = {}) => {
     ...options.headers,
   };
 
-  const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-  const data = await response.json();
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+    
+    // Check if the server is reachable
+    if (!response) {
+      throw new Error('Unable to connect to server. Please ensure the backend is running.');
+    }
+    
+    const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    if (!response.ok) {
+      throw new Error(data.message || 'Something went wrong');
+    }
+
+    return data;
+  } catch (error) {
+    // Provide more specific error messages
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Unable to connect')) {
+      throw new Error('Cannot connect to server. Please start the backend server.');
+    }
+    throw error;
   }
-
-  return data;
 };
 
 // Auth API
