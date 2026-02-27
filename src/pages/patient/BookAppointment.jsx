@@ -1,10 +1,12 @@
 /* The above code is a React component called `BookAppointment` that allows a patient to book an
 appointment with a doctor. Here is a summary of what the code does: */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
 import Modal from "../../components/Modal";
 import { doctors } from "../../data/dummyData";
+import { authAPI, appointmentsAPI } from "../../services/api";
 import {
   Stethoscope,
   Calendar,
@@ -31,6 +33,7 @@ const today = new Date().toISOString().split("T")[0];
 /* -------------------- COMPONENT -------------------- */
 
 const BookAppointment = () => {
+  const navigate = useNavigate();
   const [appointment, setAppointment] = useState({
     doctor: null,
     date: "",
@@ -39,6 +42,7 @@ const BookAppointment = () => {
   });
 
   const [showModal, setShowModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const isFormComplete =
     appointment.doctor &&
@@ -55,10 +59,46 @@ const BookAppointment = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isFormComplete) return;
-    setShowModal(true);
+    
+    setIsLoading(true);
+    try {
+      // Get current user
+      const user = authAPI.getCurrentUser();
+      if (!user) {
+        alert('Please login first');
+        return;
+      }
+
+      // Prepare appointment data
+      const appointmentData = {
+        patientId: user.id,
+        doctorId: appointment.doctor.id,
+        date: appointment.date,
+        time: appointment.time,
+        reason: appointment.reason,
+      };
+
+      // Call API to create appointment
+      await appointmentsAPI.create(appointmentData);
+      
+      // Show success modal
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      alert('Failed to book appointment. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDone = () => {
+    setShowModal(false);
+    resetForm();
+    // Navigate to dashboard to see the new appointment
+    navigate('/patient/dashboard');
   };
 
   return (
@@ -306,11 +346,9 @@ const BookAppointment = () => {
           </p>
 
           <button
-            onClick={() => {
-              setShowModal(false);
-              resetForm();
-            }}
+            onClick={handleDone}
             className="btn-primary"
+            disabled={isLoading}
           >
             Done
           </button>

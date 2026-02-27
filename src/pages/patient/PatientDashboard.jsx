@@ -25,6 +25,14 @@ const PatientDashboard = () => {
     }
   }, []);
 
+  // Refresh appointments when component mounts or regains focus
+  useEffect(() => {
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      fetchAppointments(currentUser.id);
+    }
+  }, []);
+
   const fetchAppointments = async (userId) => {
     try {
       const data = await appointmentsAPI.getAll('patient', userId);
@@ -125,9 +133,9 @@ const PatientDashboard = () => {
                   <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">No upcoming appointments</p>
                   <Link to="/patient/book-appointment" className="btn-primary inline-block">
-                    Book Appointment
+                      View Available Doctors
                   </Link>
-                </div>
+                   </div>
               ) : (
                 <div className="space-y-4">
                   {upcomingAppointments
