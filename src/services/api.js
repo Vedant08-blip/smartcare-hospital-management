@@ -1,5 +1,47 @@
 // SmartCare API Service - Connects frontend to backend API
-const API_URL = 'http://localhost:5002/api';
+// Uses localtunnel URL for cross-network access with fallback to local data
+
+// Try to use tunnel, but will fallback to local mode
+const API_URL = 'https://smartcare-backend-vedant.loca.lt/api';
+const USE_LOCAL_FALLBACK = true; // Set to true to enable offline fallback
+
+// Local dummy data for fallback
+const localDoctors = [
+  { id: 1, name: 'Dr. Sarah Johnson', specialization: 'Cardiologist', email: 'sarah.johnson@smartcare.com', phone: '+1 234-567-8901', experience: '10 years', image: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=00bcd4&color=fff&size=128' },
+  { id: 2, name: 'Dr. Michael Chen', specialization: 'Neurologist', email: 'michael.chen@smartcare.com', phone: '+1 234-567-8902', experience: '8 years', image: 'https://ui-avatars.com/api/?name=Michael+Chen&background=2196f3&color=fff&size=128' },
+  { id: 3, name: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', email: 'emily.rodriguez@smartcare.com', phone: '+1 234-567-8903', experience: '12 years', image: 'https://ui-avatars.com/api/?name=Emily+Rodriguez&background=00bcd4&color=fff&size=128' },
+  { id: 4, name: 'Dr. James Wilson', specialization: 'Orthopedic', email: 'james.wilson@smartcare.com', phone: '+1 234-567-8904', experience: '15 years', image: 'https://ui-avatars.com/api/?name=James+Wilson&background=2196f3&color=fff&size=128' },
+  { id: 5, name: 'Dr. Lisa Anderson', specialization: 'Dermatologist', email: 'lisa.anderson@smartcare.com', phone: '+1 234-567-8905', experience: '7 years', image: 'https://ui-avatars.com/api/?name=Lisa+Anderson&background=00bcd4&color=fff&size=128' },
+  { id: 6, name: 'Dr. Robert Taylor', specialization: 'General Physician', email: 'robert.taylor@smartcare.com', phone: '+1 234-567-8906', experience: '20 years', image: 'https://ui-avatars.com/api/?name=Robert+Taylor&background=2196f3&color=fff&size=128' }
+];
+
+const localPatients = [
+  { id: 1, name: 'John Doe', email: 'john.doe@email.com', phone: '+1 234-567-8910', age: 35, gender: 'Male', address: '123 Main St, City, State', bloodGroup: 'O+', image: 'https://ui-avatars.com/api/?name=John+Doe&background=00bcd4&color=fff&size=128' },
+  { id: 2, name: 'Jane Smith', email: 'jane.smith@email.com', phone: '+1 234-567-8911', age: 28, gender: 'Female', address: '456 Oak Ave, City, State', bloodGroup: 'A+', image: 'https://ui-avatars.com/api/?name=Jane+Smith&background=2196f3&color=fff&size=128' },
+  { id: 3, name: 'David Brown', email: 'david.brown@email.com', phone: '+1 234-567-8912', age: 42, gender: 'Male', address: '789 Pine Rd, City, State', bloodGroup: 'B+', image: 'https://ui-avatars.com/api/?name=David+Brown&background=00bcd4&color=fff&size=128' },
+  { id: 4, name: 'Maria Garcia', email: 'maria.garcia@email.com', phone: '+1 234-567-8913', age: 31, gender: 'Female', address: '321 Elm St, City, State', bloodGroup: 'AB+', image: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=2196f3&color=fff&size=128' }
+];
+
+let localAppointments = [
+  { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-15', time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
+  { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: '2026-02-15', time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
+  { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-14', time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
+  { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: '2026-02-16', time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
+  { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: '2026-02-17', time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
+];
+
+// Auth credentials (for local mode)
+const LOCAL_USERS = [
+  { id: 1, email: 'admin@smartcare.com', password: '123456', role: 'admin', name: 'Admin User' },
+  { id: 2, email: 'doctor@smartcare.com', password: '123456', role: 'doctor', name: 'Dr. Sarah Johnson' },
+  { id: 3, email: 'patient@email.com', password: '123456', role: 'patient', name: 'John Doe' },
+  { id: 4, email: 'patient2@email.com', password: '123456', role: 'patient', name: 'Jane Smith' }
+];
+
+// Debug function to log API calls
+const logApiCall = (method, endpoint, status, error = null) => {
+  console.log(`[API] ${method} ${endpoint} - Status: ${status}${error ? ' - Error: ' + error : ''}`);
+};
 
 const getToken = () => localStorage.getItem('token');
 
@@ -14,47 +56,130 @@ const fetchWithAuth = async (endpoint, options = {}) => {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
     
-    // Check if the server is reachable
     if (!response) {
-      throw new Error('Unable to connect to server. Please ensure the backend is running.');
+      throw new Error('USE_LOCAL_FALLBACK');
     }
     
     const data = await response.json();
 
     if (!response.ok) {
+      logApiCall(options.method || 'GET', endpoint, response.status, data.message);
       throw new Error(data.message || 'Something went wrong');
     }
 
+    logApiCall(options.method || 'GET', endpoint, response.status);
     return data;
   } catch (error) {
-    // Provide more specific error messages
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('Unable to connect')) {
-      throw new Error('Cannot connect to server. Please start the backend server.');
+    if (error.message === 'USE_LOCAL_FALLBACK' || (error.message.includes('Failed to fetch') && USE_LOCAL_FALLBACK)) {
+      logApiCall(options.method || 'GET', endpoint, 'Local Mode', 'Using local data');
+      throw new Error('USE_LOCAL_FALLBACK');
     }
+    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+      logApiCall(options.method || 'GET', endpoint, 'Network Error', error.message);
+      throw new Error('Cannot connect to server. Please check your internet connection and refresh the page.');
+    }
+    logApiCall(options.method || 'GET', endpoint, 'Error', error.message);
     throw error;
   }
 };
 
+// Local mode handlers
+const handleLocalLogin = (email, password, role) => {
+  const user = LOCAL_USERS.find(u => u.email === email && u.role === role);
+  if (!user || user.password !== password) {
+    throw new Error('Invalid credentials');
+  }
+  const token = 'local_' + btoa(JSON.stringify(user));
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(user));
+  localStorage.setItem('isLocalMode', 'true');
+  return { token, user };
+};
+
+const handleLocalGetDoctors = () => localDoctors;
+const handleLocalGetPatients = () => localPatients;
+
+const handleLocalGetAppointments = (role, userId) => {
+  let filtered = [...localAppointments];
+  
+  if (role === 'patient') {
+    filtered = localAppointments.filter(a => a.patientId === userId);
+  } else if (role === 'doctor') {
+    filtered = localAppointments.filter(a => a.doctorId === userId);
+  }
+  return filtered;
+};
+
+const handleLocalCreateAppointment = (data) => {
+  const { patientId, doctorId, date, time, reason } = data;
+  const doctor = localDoctors.find(d => d.id === doctorId);
+  const patient = localPatients.find(p => p.id === patientId);
+  
+  if (!doctor) throw new Error('Doctor not found');
+  if (!patient) throw new Error('Patient not found');
+  
+  const newAppointment = {
+    id: Date.now(),
+    patientId, 
+    patientName: patient.name,
+    doctorId, 
+    doctorName: doctor.name,
+    specialization: doctor.specialization,
+    date, 
+    time, 
+    status: 'Pending', 
+    reason
+  };
+  localAppointments.push(newAppointment);
+  return newAppointment;
+};
+
+const handleLocalStats = () => ({
+  totalDoctors: localDoctors.length,
+  totalPatients: localPatients.length,
+  appointmentsToday: localAppointments.filter(a => a.date === new Date().toISOString().split('T')[0]).length,
+  totalAppointments: localAppointments.length,
+  pendingAppointments: localAppointments.filter(a => a.status === 'Pending').length,
+  completedAppointments: localAppointments.filter(a => a.status === 'Completed').length
+});
+
 // Auth API
 export const authAPI = {
   login: async (email, password, role) => {
-    const data = await fetchWithAuth('/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email, password, role }),
-    });
-    if (data.token) {
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+    try {
+      return await fetchWithAuth('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password, role }),
+      }).then(data => {
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          localStorage.setItem('isLocalMode', 'false');
+        }
+        return data;
+      });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        console.log('[API] Using local login fallback');
+        return handleLocalLogin(email, password, role);
+      }
+      throw error;
     }
-    return data;
   },
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('isLocalMode');
   },
   verify: async () => {
     const user = localStorage.getItem('user');
     const token = getToken();
+    const isLocal = localStorage.getItem('isLocalMode') === 'true';
+    
+    if (isLocal && token) {
+      return JSON.parse(user);
+    }
+    
     if (!token || !user) return null;
     try {
       const data = await fetchWithAuth('/auth/verify');
@@ -69,11 +194,21 @@ export const authAPI = {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
+  isLocalMode: () => localStorage.getItem('isLocalMode') === 'true',
 };
 
 // Doctors API
 export const doctorsAPI = {
-  getAll: () => fetchWithAuth('/doctors'),
+  getAll: async () => {
+    try {
+      return await fetchWithAuth('/doctors');
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalGetDoctors();
+      }
+      throw error;
+    }
+  },
   getById: (id) => fetchWithAuth(`/doctors/${id}`),
   create: (data) => fetchWithAuth('/doctors', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => fetchWithAuth(`/doctors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -82,7 +217,16 @@ export const doctorsAPI = {
 
 // Patients API
 export const patientsAPI = {
-  getAll: () => fetchWithAuth('/patients'),
+  getAll: async () => {
+    try {
+      return await fetchWithAuth('/patients');
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalGetPatients();
+      }
+      throw error;
+    }
+  },
   getById: (id) => fetchWithAuth(`/patients/${id}`),
   create: (data) => fetchWithAuth('/patients', { method: 'POST', body: JSON.stringify(data) }),
   update: (id, data) => fetchWithAuth(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
@@ -91,20 +235,46 @@ export const patientsAPI = {
 
 // Appointments API
 export const appointmentsAPI = {
-  getAll: (role = null, userId = null) => {
+  getAll: async (role = null, userId = null) => {
     let endpoint = '/appointments';
     if (role && userId) endpoint += `?role=${role}&userId=${userId}`;
-    return fetchWithAuth(endpoint);
+    
+    try {
+      return await fetchWithAuth(endpoint);
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalGetAppointments(role, userId);
+      }
+      throw error;
+    }
   },
   getById: (id) => fetchWithAuth(`/appointments/${id}`),
-  create: (data) => fetchWithAuth('/appointments', { method: 'POST', body: JSON.stringify(data) }),
+  create: async (data) => {
+    try {
+      return await fetchWithAuth('/appointments', { method: 'POST', body: JSON.stringify(data) });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalCreateAppointment(data);
+      }
+      throw error;
+    }
+  },
   update: (id, data) => fetchWithAuth(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   cancel: (id) => fetchWithAuth(`/appointments/${id}`, { method: 'DELETE' }),
 };
 
 // Stats API
 export const statsAPI = {
-  get: () => fetchWithAuth('/stats'),
+  get: async () => {
+    try {
+      return await fetchWithAuth('/stats');
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalStats();
+      }
+      throw error;
+    }
+  },
 };
 
 export default { auth: authAPI, doctors: doctorsAPI, patients: patientsAPI, appointments: appointmentsAPI, stats: statsAPI };
