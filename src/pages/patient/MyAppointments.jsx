@@ -1,16 +1,37 @@
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import StatusBadge from '../../components/StatusBadge';
-import { appointments } from '../../data/dummyData';
+import { appointmentsAPI, authAPI } from '../../services/api';
 import { Calendar, Clock, Stethoscope, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const MyAppointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  // Get patient's appointments (for demo, using first patient)
-  const patientAppointments = appointments.filter(apt => apt.patientId === 1);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredAppointments = patientAppointments.filter(apt =>
+  useEffect(() => {
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      fetchAppointments(currentUser.id);
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchAppointments = async (userId) => {
+    try {
+      const data = await appointmentsAPI.getAll('patient', userId);
+      setAppointments(data || []);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredAppointments = appointments.filter(apt =>
     apt.doctorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     apt.specialization.toLowerCase().includes(searchTerm.toLowerCase())
   );
