@@ -1,13 +1,46 @@
 import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import StatusBadge from '../../components/StatusBadge';
-import { appointments, doctors } from '../../data/dummyData';
+import { doctors } from '../../data/dummyData';
+import { appointmentsAPI, authAPI } from '../../services/api';
 import { Calendar, Clock, Stethoscope, Plus, FileText } from 'lucide-react';
 
 const PatientDashboard = () => {
-  // Get patient's appointments (for demo, using first patient)
-  const patientAppointments = appointments.filter(apt => apt.patientId === 1);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [currentView, setCurrentView] = useState('upcoming');
+
+  useEffect(() => {
+    // Get current user from localStorage
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
+      // Fetch appointments for this patient
+      fetchAppointments(currentUser.id);
+    } else {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchAppointments = async (userId) => {
+    try {
+      const data = await appointmentsAPI.getAll('patient', userId);
+      setAppointments(data || []);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      // Fall back to dummy data if API fails
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Filter appointments
+  const upcomingAppointments = appointments.filter(apt => apt.status === 'Pending');
+  const completedAppointments = appointments.filter(apt => apt.status === 'Completed');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -35,7 +68,7 @@ const PatientDashboard = () => {
               </div>
             </Link>
             
-            <div className="card">
+            <div className="card cursor-pointer" onClick={() => setCurrentView('upcoming')}>
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-blue-50 rounded-lg">
                   <Calendar className="h-8 w-8 text-blue-600" />
@@ -43,13 +76,13 @@ const PatientDashboard = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">Upcoming</h3>
                   <p className="text-sm text-gray-600">
-                    {patientAppointments.filter(apt => apt.status === 'Pending').length} appointments
+                    {upcomingAppointments.length} appointments
                   </p>
                 </div>
               </div>
             </div>
             
-            <div className="card">
+            <div className="card cursor-pointer" onClick={() => setCurrentView('history')}>
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-green-50 rounded-lg">
                   <FileText className="h-8 w-8 text-green-600" />
@@ -57,36 +90,95 @@ const PatientDashboard = () => {
                 <div>
                   <h3 className="font-semibold text-gray-900 mb-1">History</h3>
                   <p className="text-sm text-gray-600">
-                    {patientAppointments.filter(apt => apt.status === 'Completed').length} completed
+                    {completedAppointments.length} completed
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Upcoming Appointments */}
+          {/* Appointments Section - Changes based on currentView */}
           <div className="card mb-8">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-900">Upcoming Appointments</h2>
-              <Link to="/patient/appointments" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
-                View All
-              </Link>
+              <h2 className="text-xl font-semibold text-gray-900">
+                {currentView === 'upcoming' ? 'Upcoming Appointments' : 'Appointment History'}
+              </h2>
+              <div className="space-x-4">
+                <button 
+                  onClick={() => setCurrentView('upcoming')}
+                  className={`text-sm font-medium ${currentView === 'upcoming' ? 'text-primary-600' : 'text-gray-500'}`}
+                >
+                  Upcoming
+                </button>
+                <button 
+                  onClick={() => setCurrentView('history')}
+                  className={`text-sm font-medium ${currentView === 'history' ? 'text-primary-600' : 'text-gray-500'}`}
+                >
+                  History
+                </button>
+              </div>
             </div>
             
-            {patientAppointments.filter(apt => apt.status === 'Pending').length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 mb-4">No upcoming appointments</p>
-                <Link to="/patient/book-appointment" className="btn-primary inline-block">
-                  Book Appointment
-                </Link>
-              </div>
+            {currentView === 'upcoming' ? (
+              upcomingAppointments.length === 0 ? (
+                <div className="text-center py-12">
+                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 mb-4">No upcoming appointments</p>
+                  <Link to="/patient/book-appointment" className="btn-primary inline-block">
+                    Book Appointment
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {upcomingAppointments
+                    .slice(0, 3)
+                    .map((appointment) => (
+                      <div
+                        key={appointment.id}
+                        className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-3">
+                              <Stethoscope className="h-5 w-5 text-primary-600" />
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {appointment.doctorName}
+                              </h3>
+                              <StatusBadge status={appointment.status} />
+                            </div>
+                            <p className="text-sm text-primary-600 mb-3">{appointment.specialization}</p>
+                            <div className="flex items-center space-x-4 text-gray-600">
+                              <div className="flex items-center space-x-2">
+                                <Calendar className="h-4 w-4" />
+                                <span className="text-sm">{appointment.date}</span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <Clock className="h-4 w-4" />
+                                <span className="text-sm">{appointment.time}</span>
+                              </div>
+                            </div>
+                            <p className="text-gray-700 mt-3">
+                              <span className="font-medium">Reason:</span> {appointment.reason}
+                            </p>
+                          </div>
+                          <button className="btn-secondary text-sm">
+                            View Details
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )
             ) : (
-              <div className="space-y-4">
-                {patientAppointments
-                  .filter(apt => apt.status === 'Pending')
-                  .slice(0, 3)
-                  .map((appointment) => (
+              /* History View */
+              completedAppointments.length === 0 ? (
+                <div className="text-center py-12">
+                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No appointment history</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {completedAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
                       className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
@@ -115,13 +207,11 @@ const PatientDashboard = () => {
                             <span className="font-medium">Reason:</span> {appointment.reason}
                           </p>
                         </div>
-                        <button className="btn-secondary text-sm">
-                          View Details
-                        </button>
                       </div>
                     </div>
                   ))}
-              </div>
+                </div>
+              )
             )}
           </div>
 

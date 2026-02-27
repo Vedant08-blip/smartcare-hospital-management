@@ -177,10 +177,23 @@ app.delete('/api/patients/:id', (req, res) => {
 
 // Appointments
 app.get('/api/appointments', (req, res) => {
-  const { role, userId } = req.query;
+  const { role, userId, email } = req.query;
   let filtered = appointments;
-  if (role === 'patient' && userId) filtered = appointments.filter(a => a.patientId === parseInt(userId));
-  else if (role === 'doctor' && userId) filtered = appointments.filter(a => a.doctorId === parseInt(userId));
+  
+  if (role === 'patient' && userId) {
+    // Find the patient's email from users or patients table
+    const patientUser = users.find(u => u.id === parseInt(userId) && u.role === 'patient');
+    if (patientUser) {
+      // Find patient by email to get correct patientId
+      const patient = patients.find(p => p.email === patientUser.email);
+      if (patient) {
+        filtered = appointments.filter(a => a.patientId === patient.id);
+      }
+    }
+  }
+  else if (role === 'doctor' && userId) {
+    filtered = appointments.filter(a => a.doctorId === parseInt(userId));
+  }
   res.json(filtered);
 });
 app.post('/api/appointments', (req, res) => {
