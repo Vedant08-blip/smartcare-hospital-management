@@ -31,6 +31,7 @@ app.use((req, res, next) => {
 // ================================
 
 // Load data from file
+
 const loadData = () => {
   try {
     if (fs.existsSync(DATA_FILE)) {
