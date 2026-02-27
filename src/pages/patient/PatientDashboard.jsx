@@ -2,16 +2,20 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
+import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
 import { doctors } from '../../data/dummyData';
 import { appointmentsAPI, authAPI } from '../../services/api';
-import { Calendar, Clock, Stethoscope, Plus, FileText } from 'lucide-react';
+import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
 
 const PatientDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('upcoming');
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     // Get current user from localStorage
@@ -43,6 +47,30 @@ const PatientDashboard = () => {
       setAppointments([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cancelAppointment = async (appointmentId) => {
+    setCancelling(true);
+    try {
+      await appointmentsAPI.cancel(appointmentId);
+      
+      // Update local state to remove the cancelled appointment
+      setAppointments(prevAppointments => 
+        prevAppointments.filter(apt => apt.id !== appointmentId)
+      );
+      
+      // Close the modal
+      setShowDetailsModal(false);
+      setSelectedAppointment(null);
+      
+      // Show success message (you could use a toast notification here)
+      alert('Appointment cancelled successfully!');
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      alert('Failed to cancel appointment. Please try again.');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -169,7 +197,13 @@ const PatientDashboard = () => {
                               <span className="font-medium">Reason:</span> {appointment.reason}
                             </p>
                           </div>
-                          <button className="btn-secondary text-sm">
+                          <button 
+                            className="btn-secondary text-sm"
+                            onClick={() => {
+                              setSelectedAppointment(appointment);
+                              setShowDetailsModal(true);
+                            }}
+                          >
                             View Details
                           </button>
                         </div>
@@ -253,6 +287,57 @@ const PatientDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Appointment Details Modal */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Appointment Details"
+      >
+        {selectedAppointment && (
+          <div className="p-4">
+            <div className="flex items-center space-x-4 mb-6">
+              <img
+                src={selectedAppointment.doctorId ? doctors.find(d => d.id === selectedAppointment.doctorId)?.image : 'https://ui-avatars.com/api/?name=Doctor&background=00bcd4&color=fff&size=128'}
+                alt={selectedAppointment.doctorName}
+                className="w-16 h-16 rounded-full"
+              />
+              <div>
+                <h3 className="text-lg font-semibold">{selectedAppointment.doctorName}</h3>
+                <p className="text-primary-600">{selectedAppointment.specialization}</p>
+                <StatusBadge status={selectedAppointment.status} />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <Calendar className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.date}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Clock className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.time}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Stethoscope className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.reason}</span>
+              </div>
+            </div>
+
+            {selectedAppointment.status === 'Pending' && (
+              <div className="mt-6 flex space-x-3">
+                <button
+                  onClick={() => cancelAppointment(selectedAppointment.id)}
+                  disabled={cancelling}
+                  className="flex-1 bg-red-100 text-red-700 py-2 rounded-lg hover:bg-red-200 disabled:bg-red-50 disabled:text-red-300"
+                >
+                  {cancelling ? 'Cancelling...' : 'Cancel Appointment'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
