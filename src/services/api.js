@@ -25,16 +25,41 @@ const localPatients = [
 // Initialize local appointments from localStorage or use default
 const getInitialAppointments = () => {
   const stored = localStorage.getItem('localAppointments');
-  if (stored) {
-    return JSON.parse(stored);
-  }
-  return [
-    { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-15', time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
-    { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: '2026-02-15', time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
-    { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: '2026-02-14', time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
-    { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: '2026-02-16', time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
-    { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: '2026-02-17', time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
+  
+  // Always update dates to current for demo purposes
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  
+  const defaultAppointments = [
+    { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: todayStr, time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
+    { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: todayStr, time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
+    { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: todayStr, time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
+    { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: tomorrowStr, time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
+    { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: tomorrowStr, time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
   ];
+  
+  if (stored) {
+    const parsed = JSON.parse(stored);
+    
+    // Check if stored appointments have outdated dates (different from today/tomorrow)
+    const needsUpdate = parsed.some(apt => {
+      return apt.date !== todayStr && apt.date !== tomorrowStr;
+    });
+    
+    if (needsUpdate || parsed.length === 0) {
+      localStorage.setItem('localAppointments', JSON.stringify(defaultAppointments));
+      return defaultAppointments;
+    }
+    
+    return parsed;
+  }
+  
+  localStorage.setItem('localAppointments', JSON.stringify(defaultAppointments));
+  return defaultAppointments;
 };
 
 let localAppointments = getInitialAppointments();
@@ -177,6 +202,50 @@ const handleLocalStats = () => ({
   completedAppointments: localAppointments.filter(a => a.status === 'Completed').length
 });
 
+const handleLocalCancelAppointment = (id) => {
+  // Reload from localStorage to get latest appointments
+  const stored = localStorage.getItem('localAppointments');
+  if (stored) {
+    localAppointments = JSON.parse(stored);
+  }
+  
+  const index = localAppointments.findIndex(a => a.id === id);
+  if (index === -1) {
+    throw new Error('Appointment not found');
+  }
+  
+  // Remove the appointment from the list
+  localAppointments.splice(index, 1);
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
+  console.log('[API] Appointment cancelled:', id);
+  
+  return { success: true, message: 'Appointment cancelled successfully' };
+};
+
+const handleLocalUpdateAppointment = (id, data) => {
+  // Reload from localStorage to get latest appointments
+  const stored = localStorage.getItem('localAppointments');
+  if (stored) {
+    localAppointments = JSON.parse(stored);
+  }
+  
+  const index = localAppointments.findIndex(a => a.id === id);
+  if (index === -1) {
+    throw new Error('Appointment not found');
+  }
+  
+  // Update the appointment with new data
+  localAppointments[index] = { ...localAppointments[index], ...data };
+  
+  // Save to localStorage for persistence
+  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
+  console.log('[API] Appointment updated:', id, data);
+  
+  return localAppointments[index];
+};
+
 // Auth API
 export const authAPI = {
   login: async (email, password, role) => {
@@ -293,8 +362,26 @@ export const appointmentsAPI = {
       throw error;
     }
   },
-  update: (id, data) => fetchWithAuth(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  cancel: (id) => fetchWithAuth(`/appointments/${id}`, { method: 'DELETE' }),
+  update: async (id, data) => {
+    try {
+      return await fetchWithAuth(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalUpdateAppointment(id, data);
+      }
+      throw error;
+    }
+  },
+  cancel: async (id) => {
+    try {
+      return await fetchWithAuth(`/appointments/${id}`, { method: 'DELETE' });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalCancelAppointment(id);
+      }
+      throw error;
+    }
+  },
 };
 
 // Stats API

@@ -1,17 +1,67 @@
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
+import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
-import { appointments } from '../../data/dummyData';
-import { Calendar, Clock, User, Search } from 'lucide-react';
-import { useState } from 'react';
+import { appointmentsAPI, authAPI } from '../../services/api';
+import { Calendar, Clock, User, Search, Stethoscope } from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 const DoctorAppointments = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  // Filter appointments for the doctor (for demo, using doctor ID 1)
-  const doctorAppointments = appointments.filter(apt => apt.doctorId === 1);
+  const [appointments, setAppointments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [updating, setUpdating] = useState(false);
 
-  const filteredAppointments = doctorAppointments.filter(apt =>
-    apt.patientName.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = async () => {
+    try {
+      const data = await appointmentsAPI.getAll();
+      setAppointments(data || []);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      setAppointments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markAsCompleted = async (appointmentId) => {
+    setUpdating(true);
+    try {
+      await appointmentsAPI.update(appointmentId, { status: 'Completed' });
+      
+      // Update local state
+      setAppointments(prevAppointments =>
+        prevAppointments.map(apt =>
+          apt.id === appointmentId ? { ...apt, status: 'Completed' } : apt
+        )
+      );
+      
+      // Close the modal
+      setShowDetailsModal(false);
+      setSelectedAppointment(null);
+      
+      alert('Appointment marked as completed!');
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+      alert('Failed to update appointment. Please try again.');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // Get today's date in YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
+
+  const filteredAppointments = appointments.filter(apt =>
+    (apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    apt.reason.toLowerCase().includes(searchTerm.toLowerCase())) &&
+    apt.date === today
   );
 
   return (
@@ -82,7 +132,13 @@ const DoctorAppointments = () => {
                         <StatusBadge status={appointment.status} />
                       </td>
                       <td className="py-4 px-6">
-                        <button className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+                        <button 
+                          className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+                          onClick={() => {
+                            setSelectedAppointment(appointment);
+                            setShowDetailsModal(true);
+                          }}
+                        >
                           View Details
                         </button>
                       </td>
@@ -94,6 +150,59 @@ const DoctorAppointments = () => {
           </div>
         </div>
       </div>
+
+      {/* Appointment Details Modal */}
+      <Modal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        title="Appointment Details"
+      >
+        {selectedAppointment && (
+          <div className="p-4">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="w-16 h-16 rounded-full bg-primary-100 flex items-center justify-center">
+                <User className="h-8 w-8 text-primary-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">{selectedAppointment.patientName}</h3>
+                <p className="text-gray-600">Patient</p>
+                <StatusBadge status={selectedAppointment.status} />
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <Calendar className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.date}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Clock className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.time}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <Stethoscope className="h-5 w-5 text-gray-400" />
+                <span>{selectedAppointment.reason}</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-gray-500">Doctor:</span>
+                <span>{selectedAppointment.doctorName}</span>
+              </div>
+            </div>
+
+            {selectedAppointment.status === 'Pending' && (
+              <div className="mt-6 flex space-x-3">
+                <button
+                  onClick={() => markAsCompleted(selectedAppointment.id)}
+                  disabled={updating}
+                  className="flex-1 bg-green-100 text-green-700 py-2 rounded-lg hover:bg-green-200 disabled:bg-green-50 disabled:text-green-300"
+                >
+                  {updating ? 'Updating...' : 'Mark as Completed'}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
