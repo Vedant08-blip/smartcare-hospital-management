@@ -2,6 +2,8 @@ import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
+import { useToast } from '../../components/Toast';
+import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { appointmentsAPI, authAPI, doctorsAPI } from '../../services/api';
 import { Calendar, Clock, User, FileText, Phone, Mail, Stethoscope } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -9,11 +11,13 @@ import { useState, useEffect } from 'react';
 const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const currentUser = authAPI.getCurrentUser();
@@ -30,8 +34,7 @@ const DoctorDashboard = () => {
 
   const fetchDoctorAndAppointments = async (userId) => {
     try {
-      // Get all appointments without filtering by doctor first
-      // We'll show all appointments for demonstration
+      // Get all appointments
       const data = await appointmentsAPI.getAll();
       
       if (data && Array.isArray(data)) {
@@ -39,9 +42,11 @@ const DoctorDashboard = () => {
       } else {
         setAppointments([]);
       }
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      setAppointments([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError(err.message || 'Failed to load appointments');
+      toast.error('Failed to load appointments. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,10 +68,10 @@ const DoctorDashboard = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      alert('Appointment marked as completed!');
+      toast.success('Appointment marked as completed!');
     } catch (error) {
       console.error('Error updating appointment:', error);
-      alert('Failed to update appointment. Please try again.');
+      toast.error('Failed to update appointment. Please try again.');
     } finally {
       setUpdating(false);
     }

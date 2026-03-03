@@ -4,6 +4,8 @@ import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
+import { useToast } from '../../components/Toast';
+import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { doctors } from '../../data/dummyData';
 import { appointmentsAPI, authAPI } from '../../services/api';
 import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
@@ -11,11 +13,13 @@ import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
 const PatientDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('upcoming');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     // Get current user from localStorage
@@ -41,10 +45,11 @@ const PatientDashboard = () => {
     try {
       const data = await appointmentsAPI.getAll('patient', userId);
       setAppointments(data || []);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      // Fall back to dummy data if API fails
-      setAppointments([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError(err.message || 'Failed to load appointments');
+      toast.error('Failed to load appointments. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -64,11 +69,11 @@ const PatientDashboard = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      // Show success message (you could use a toast notification here)
-      alert('Appointment cancelled successfully!');
+      // Show success toast
+      toast.success('Appointment cancelled successfully!');
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      alert('Failed to cancel appointment. Please try again.');
+      toast.error('Failed to cancel appointment. Please try again.');
     } finally {
       setCancelling(false);
     }

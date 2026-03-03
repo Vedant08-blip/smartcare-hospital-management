@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { authAPI } from "../services/api";
+import { useToast } from "../components/Toast";
 import {
   Stethoscope,
   Shield,
@@ -47,12 +48,13 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preselectedRole = searchParams.get("role");
+  const toast = useToast();
 
   const [role, setRole] = useState(preselectedRole || null);
   const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
 
   // Auto-select role if provided in URL
   useEffect(() => {
@@ -67,30 +69,63 @@ const LoginPage = () => {
   const showRoleSelection = !preselectedRole;
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    setError("");
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
+  };
+
+  // Validate form fields
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!role) {
+      newErrors.role = 'Please select a role';
+    }
+    
+    if (!form.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+    
+    if (!form.password) {
+      newErrors.password = 'Password is required';
+    } else if (form.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (!role) return setError("Please select a role");
-    if (!form.email || !form.password)
-      return setError("All fields are required");
+    if (!validateForm()) {
+      return;
+    }
 
     setLoading(true);
-    setError("");
+    setErrors({});
 
     try {
       const data = await authAPI.login(form.email, form.password, role);
       
       if (data.token) {
+        toast.success('Login successful! Welcome back.');
         navigate(`/${role}/dashboard`);
       } else {
-        setError(data.message || "Login failed");
+        setErrors({ general: data.message || 'Login failed' });
+        toast.error(data.message || 'Login failed');
       }
     } catch (err) {
-      setError(err.message || "Server error. Please try again.");
+      const errorMessage = err.response?.data?.message || err.message || 'Server error. Please try again.';
+      setErrors({ general: errorMessage });
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -176,9 +211,9 @@ const LoginPage = () => {
                   </p>
                 </div>
 
-                {error && (
+                {errors.general && (
                   <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-                    {error}
+                    {errors.general}
                   </div>
                 )}
 
@@ -191,9 +226,12 @@ const LoginPage = () => {
                     name="email"
                     value={form.email}
                     onChange={handleChange}
-                    className="input-field"
+                    className={`input-field ${errors.email ? 'border-red-500 focus:border-red-500' : ''}`}
                     placeholder="name@example.com"
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                  )}
                 </div>
 
                 <div className="relative">
@@ -205,9 +243,12 @@ const LoginPage = () => {
                     name="password"
                     value={form.password}
                     onChange={handleChange}
-                    className="input-field pr-10"
+                    className={`input-field pr-10 ${errors.password ? 'border-red-500 focus:border-red-500' : ''}`}
                     placeholder="••••••••"
                   />
+                  {errors.password && (
+                    <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                  )}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}

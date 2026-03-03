@@ -1,11 +1,78 @@
-// SmartCare API Service - Connects frontend to backend API
-// Uses localtunnel URL for cross-network access with fallback to local data
+import axios from 'axios';
+import { useToast } from '../components/Toast';
 
-// Try to use tunnel, but will fallback to local mode
-const API_URL = 'https://smartcare-backend-vedant.loca.lt/api';
-const USE_LOCAL_FALLBACK = true; // Set to true to enable offline fallback
+// API Configuration
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
+const USE_LOCAL_FALLBACK = false; // Force using real API - set to true only for offline development
 
-// Local dummy data for fallback
+// Create axios instance with default config
+const api = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// Request interceptor - add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - handle errors globally
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const { response } = error;
+    
+    // Handle different error scenarios
+    if (response) {
+      switch (response.status) {
+        case 401:
+          // Unauthorized - token expired or invalid
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          localStorage.removeItem('isLocalMode');
+          // Only redirect if not already on login page
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+          break;
+        case 403:
+          // Forbidden
+          break;
+        case 404:
+          // Not found
+          break;
+        case 429:
+          // Rate limited
+          break;
+        case 500:
+          // Server error
+          break;
+        default:
+          break;
+      }
+    } else if (error.code === 'ECONNABORTED') {
+      // Timeout
+    } else if (!navigator.onLine) {
+      // Offline
+    }
+    
+    return Promise.reject(error);
+  }
+);
+
+// Local dummy data for fallback mode only
 const localDoctors = [
   { id: 1, name: 'Dr. Sarah Johnson', specialization: 'Cardiologist', email: 'sarah.johnson@smartcare.com', phone: '+1 234-567-8901', experience: '10 years', image: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=00bcd4&color=fff&size=128' },
   { id: 2, name: 'Dr. Michael Chen', specialization: 'Neurologist', email: 'michael.chen@smartcare.com', phone: '+1 234-567-8902', experience: '8 years', image: 'https://ui-avatars.com/api/?name=Michael+Chen&background=2196f3&color=fff&size=128' },
@@ -22,49 +89,26 @@ const localPatients = [
   { id: 4, name: 'Maria Garcia', email: 'maria.garcia@email.com', phone: '+1 234-567-8913', age: 31, gender: 'Female', address: '321 Elm St, City, State', bloodGroup: 'AB+', image: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=2196f3&color=fff&size=128' }
 ];
 
-// Initialize local appointments from localStorage or use default
+// Initialize local appointments
 const getInitialAppointments = () => {
-  const stored = localStorage.getItem('localAppointments');
-  
-  // Always update dates to current for demo purposes
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
-  
-  const defaultAppointments = [
+
+  return [
     { id: 1, patientId: 1, patientName: 'John Doe', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: todayStr, time: '10:00 AM', status: 'Pending', reason: 'Regular checkup' },
     { id: 2, patientId: 2, patientName: 'Jane Smith', doctorId: 2, doctorName: 'Dr. Michael Chen', specialization: 'Neurologist', date: todayStr, time: '11:00 AM', status: 'Pending', reason: 'Headache consultation' },
     { id: 3, patientId: 3, patientName: 'David Brown', doctorId: 1, doctorName: 'Dr. Sarah Johnson', specialization: 'Cardiologist', date: todayStr, time: '02:00 PM', status: 'Completed', reason: 'Follow-up appointment' },
     { id: 4, patientId: 4, patientName: 'Maria Garcia', doctorId: 3, doctorName: 'Dr. Emily Rodriguez', specialization: 'Pediatrician', date: tomorrowStr, time: '09:00 AM', status: 'Pending', reason: 'Child health checkup' },
     { id: 5, patientId: 1, patientName: 'John Doe', doctorId: 4, doctorName: 'Dr. James Wilson', specialization: 'Orthopedic', date: tomorrowStr, time: '03:00 PM', status: 'Pending', reason: 'Knee pain consultation' }
   ];
-  
-  if (stored) {
-    const parsed = JSON.parse(stored);
-    
-    // Check if stored appointments have outdated dates (different from today/tomorrow)
-    const needsUpdate = parsed.some(apt => {
-      return apt.date !== todayStr && apt.date !== tomorrowStr;
-    });
-    
-    if (needsUpdate || parsed.length === 0) {
-      localStorage.setItem('localAppointments', JSON.stringify(defaultAppointments));
-      return defaultAppointments;
-    }
-    
-    return parsed;
-  }
-  
-  localStorage.setItem('localAppointments', JSON.stringify(defaultAppointments));
-  return defaultAppointments;
 };
 
 let localAppointments = getInitialAppointments();
 
-// Auth credentials (for local mode)
+// Local users for fallback
 const LOCAL_USERS = [
   { id: 1, email: 'admin@smartcare.com', password: '123456', role: 'admin', name: 'Admin User' },
   { id: 2, email: 'doctor@smartcare.com', password: '123456', role: 'doctor', name: 'Dr. Sarah Johnson' },
@@ -72,58 +116,9 @@ const LOCAL_USERS = [
   { id: 4, email: 'patient2@email.com', password: '123456', role: 'patient', name: 'Jane Smith' }
 ];
 
-// Map user IDs to patient IDs for appointment filtering
-const USER_ID_TO_PATIENT_ID = {
-  3: 1, // John Doe (user id 3) -> patient id 1
-  4: 2  // Jane Smith (user id 4) -> patient id 2
-};
+const USER_ID_TO_PATIENT_ID = { 3: 1, 4: 2 };
 
-// Debug function to log API calls
-const logApiCall = (method, endpoint, status, error = null) => {
-  console.log(`[API] ${method} ${endpoint} - Status: ${status}${error ? ' - Error: ' + error : ''}`);
-};
-
-const getToken = () => localStorage.getItem('token');
-
-const fetchWithAuth = async (endpoint, options = {}) => {
-  const token = getToken();
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
-    ...options.headers,
-  };
-
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
-    
-    if (!response) {
-      throw new Error('USE_LOCAL_FALLBACK');
-    }
-    
-    const data = await response.json();
-
-    if (!response.ok) {
-      logApiCall(options.method || 'GET', endpoint, response.status, data.message);
-      throw new Error(data.message || 'Something went wrong');
-    }
-
-    logApiCall(options.method || 'GET', endpoint, response.status);
-    return data;
-  } catch (error) {
-    if (error.message === 'USE_LOCAL_FALLBACK' || (error.message.includes('Failed to fetch') && USE_LOCAL_FALLBACK)) {
-      logApiCall(options.method || 'GET', endpoint, 'Local Mode', 'Using local data');
-      throw new Error('USE_LOCAL_FALLBACK');
-    }
-    if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-      logApiCall(options.method || 'GET', endpoint, 'Network Error', error.message);
-      throw new Error('Cannot connect to server. Please check your internet connection and refresh the page.');
-    }
-    logApiCall(options.method || 'GET', endpoint, 'Error', error.message);
-    throw error;
-  }
-};
-
-// Local mode handlers
+// Helper functions for local fallback mode
 const handleLocalLogin = (email, password, role) => {
   const user = LOCAL_USERS.find(u => u.email === email && u.role === role);
   if (!user || user.password !== password) {
@@ -140,56 +135,37 @@ const handleLocalGetDoctors = () => localDoctors;
 const handleLocalGetPatients = () => localPatients;
 
 const handleLocalGetAppointments = (role, userId) => {
-  // Reload from localStorage to get latest appointments
-  const stored = localStorage.getItem('localAppointments');
-  if (stored) {
-    localAppointments = JSON.parse(stored);
-  }
-  
-  // Convert userId to patientId if needed
   const patientId = USER_ID_TO_PATIENT_ID[userId] || userId;
-  
   let filtered = [...localAppointments];
-  
   if (role === 'patient') {
     filtered = localAppointments.filter(a => a.patientId === patientId);
   } else if (role === 'doctor') {
     filtered = localAppointments.filter(a => a.doctorId === userId);
   }
-  console.log('[API] Getting appointments for', role, 'userId:', userId, 'patientId:', patientId, 'Total:', filtered.length);
   return filtered;
 };
 
 const handleLocalCreateAppointment = (data) => {
   const { patientId, doctorId, date, time, reason } = data;
-  
-  // Convert userId to patientId if needed (userId is the user account id, not patient id)
   const actualPatientId = USER_ID_TO_PATIENT_ID[patientId] || patientId;
-  
   const doctor = localDoctors.find(d => d.id === doctorId);
   const patient = localPatients.find(p => p.id === actualPatientId);
-  
   if (!doctor) throw new Error('Doctor not found');
   if (!patient) throw new Error('Patient not found');
   
   const newAppointment = {
     id: Date.now(),
-    patientId: actualPatientId, 
+    patientId: actualPatientId,
     patientName: patient.name,
-    doctorId, 
+    doctorId,
     doctorName: doctor.name,
     specialization: doctor.specialization,
-    date, 
-    time, 
-    status: 'Pending', 
+    date,
+    time,
+    status: 'Pending',
     reason
   };
   localAppointments.push(newAppointment);
-  
-  // Save to localStorage for persistence
-  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
-  console.log('[API] New appointment saved:', newAppointment);
-  
   return newAppointment;
 };
 
@@ -203,200 +179,256 @@ const handleLocalStats = () => ({
 });
 
 const handleLocalCancelAppointment = (id) => {
-  // Reload from localStorage to get latest appointments
-  const stored = localStorage.getItem('localAppointments');
-  if (stored) {
-    localAppointments = JSON.parse(stored);
-  }
-  
   const index = localAppointments.findIndex(a => a.id === id);
-  if (index === -1) {
-    throw new Error('Appointment not found');
-  }
-  
-  // Remove the appointment from the list
+  if (index === -1) throw new Error('Appointment not found');
   localAppointments.splice(index, 1);
-  
-  // Save to localStorage for persistence
-  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
-  console.log('[API] Appointment cancelled:', id);
-  
   return { success: true, message: 'Appointment cancelled successfully' };
 };
 
 const handleLocalUpdateAppointment = (id, data) => {
-  // Reload from localStorage to get latest appointments
-  const stored = localStorage.getItem('localAppointments');
-  if (stored) {
-    localAppointments = JSON.parse(stored);
-  }
-  
   const index = localAppointments.findIndex(a => a.id === id);
-  if (index === -1) {
-    throw new Error('Appointment not found');
-  }
-  
-  // Update the appointment with new data
+  if (index === -1) throw new Error('Appointment not found');
   localAppointments[index] = { ...localAppointments[index], ...data };
-  
-  // Save to localStorage for persistence
-  localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
-  console.log('[API] Appointment updated:', id, data);
-  
   return localAppointments[index];
 };
 
-// Auth API
+// API functions with real API + optional local fallback
 export const authAPI = {
   login: async (email, password, role) => {
     try {
-      return await fetchWithAuth('/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, role }),
-      }).then(data => {
-        if (data.token) {
-          localStorage.setItem('token', data.token);
-          localStorage.setItem('user', JSON.stringify(data.user));
-          localStorage.setItem('isLocalMode', 'false');
-        }
-        return data;
-      });
+      const response = await api.post('/auth/login', { email, password, role });
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        localStorage.setItem('isLocalMode', 'false');
+      }
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         console.log('[API] Using local login fallback');
         return handleLocalLogin(email, password, role);
       }
       throw error;
     }
   },
+  
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     localStorage.removeItem('isLocalMode');
   },
+  
   verify: async () => {
-    const user = localStorage.getItem('user');
-    const token = getToken();
+    const token = localStorage.getItem('token');
     const isLocal = localStorage.getItem('isLocalMode') === 'true';
+    const user = localStorage.getItem('user');
     
-    if (isLocal && token) {
+    if (isLocal && token && user) {
       return JSON.parse(user);
     }
     
-    if (!token || !user) return null;
+    if (!token) return null;
+    
     try {
-      const data = await fetchWithAuth('/auth/verify');
-      return data.user;
-    } catch {
+      const response = await api.get('/auth/verify');
+      return response.data.user;
+    } catch (error) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       return null;
     }
   },
+  
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
     return user ? JSON.parse(user) : null;
   },
+  
   isLocalMode: () => localStorage.getItem('isLocalMode') === 'true',
+  
+  register: async (userData) => {
+    try {
+      const response = await api.post('/auth/register', userData);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+      }
+      return response.data;
+    } catch (error) {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+        throw new Error('Cannot register in offline mode');
+      }
+      throw error;
+    }
+  }
 };
 
-// Doctors API
 export const doctorsAPI = {
   getAll: async () => {
     try {
-      return await fetchWithAuth('/doctors');
+      const response = await api.get('/doctors');
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalGetDoctors();
       }
       throw error;
     }
   },
-  getById: (id) => fetchWithAuth(`/doctors/${id}`),
-  create: (data) => fetchWithAuth('/doctors', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => fetchWithAuth(`/doctors/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => fetchWithAuth(`/doctors/${id}`, { method: 'DELETE' }),
+  
+  getById: async (id) => {
+    const response = await api.get(`/doctors/${id}`);
+    return response.data;
+  },
+  
+  create: async (data) => {
+    const response = await api.post('/doctors', data);
+    return response.data;
+  },
+  
+  update: async (id, data) => {
+    const response = await api.put(`/doctors/${id}`, data);
+    return response.data;
+  },
+  
+  delete: async (id) => {
+    const response = await api.delete(`/doctors/${id}`);
+    return response.data;
+  }
 };
 
-// Patients API
 export const patientsAPI = {
   getAll: async () => {
     try {
-      return await fetchWithAuth('/patients');
+      const response = await api.get('/patients');
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalGetPatients();
       }
       throw error;
     }
   },
-  getById: (id) => fetchWithAuth(`/patients/${id}`),
-  create: (data) => fetchWithAuth('/patients', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => fetchWithAuth(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => fetchWithAuth(`/patients/${id}`, { method: 'DELETE' }),
+  
+  getById: async (id) => {
+    const response = await api.get(`/patients/${id}`);
+    return response.data;
+  },
+  
+  create: async (data) => {
+    const response = await api.post('/patients', data);
+    return response.data;
+  },
+  
+  update: async (id, data) => {
+    const response = await api.put(`/patients/${id}`, data);
+    return response.data;
+  },
+  
+  delete: async (id) => {
+    const response = await api.delete(`/patients/${id}`);
+    return response.data;
+  },
+  
+  getMedicalRecords: async (patientId) => {
+    const response = await api.get(`/patients/${patientId}/medical-records`);
+    return response.data;
+  },
+  
+  addMedicalRecord: async (patientId, data) => {
+    const response = await api.post(`/patients/${patientId}/medical-records`, data);
+    return response.data;
+  }
 };
 
-// Appointments API
 export const appointmentsAPI = {
   getAll: async (role = null, userId = null) => {
-    let endpoint = '/appointments';
-    if (role && userId) endpoint += `?role=${role}&userId=${userId}`;
-    
     try {
-      return await fetchWithAuth(endpoint);
+      let endpoint = '/appointments';
+      if (role && userId) endpoint += `?role=${role}&userId=${userId}`;
+      const response = await api.get(endpoint);
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalGetAppointments(role, userId);
       }
       throw error;
     }
   },
-  getById: (id) => fetchWithAuth(`/appointments/${id}`),
+  
+  getById: async (id) => {
+    const response = await api.get(`/appointments/${id}`);
+    return response.data;
+  },
+  
   create: async (data) => {
     try {
-      return await fetchWithAuth('/appointments', { method: 'POST', body: JSON.stringify(data) });
+      const response = await api.post('/appointments', data);
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalCreateAppointment(data);
       }
       throw error;
     }
   },
+  
   update: async (id, data) => {
     try {
-      return await fetchWithAuth(`/appointments/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+      const response = await api.put(`/appointments/${id}`, data);
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalUpdateAppointment(id, data);
       }
       throw error;
     }
   },
+  
   cancel: async (id) => {
     try {
-      return await fetchWithAuth(`/appointments/${id}`, { method: 'DELETE' });
+      const response = await api.delete(`/appointments/${id}`);
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalCancelAppointment(id);
       }
       throw error;
     }
-  },
+  }
 };
 
-// Stats API
 export const statsAPI = {
   get: async () => {
     try {
-      return await fetchWithAuth('/stats');
+      const response = await api.get('/stats');
+      return response.data;
     } catch (error) {
-      if (error.message === 'USE_LOCAL_FALLBACK') {
+      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
         return handleLocalStats();
       }
       throw error;
     }
-  },
+  }
 };
 
-export default { auth: authAPI, doctors: doctorsAPI, patients: patientsAPI, appointments: appointmentsAPI, stats: statsAPI };
+export const healthAPI = {
+  check: async () => {
+    try {
+      const response = await api.get('/health');
+      return response.data;
+    } catch (error) {
+      return { status: 'unhealthy', error: error.message };
+    }
+  }
+};
+
+export default { 
+  auth: authAPI, 
+  doctors: doctorsAPI, 
+  patients: patientsAPI, 
+  appointments: appointmentsAPI, 
+  stats: statsAPI,
+  health: healthAPI 
+};
 
