@@ -1,16 +1,29 @@
 import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
+import Modal from '../../components/Modal';
 import { patients } from '../../data/dummyData';
-import { User, Mail, Phone, Droplet, Search } from 'lucide-react';
+import { User, Mail, Phone, Droplet, Search, Calendar, Activity, Pill, AlertCircle, Clock } from 'lucide-react';
 import { useState } from 'react';
 
 const DoctorPatients = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   const filteredPatients = patients.filter(patient =>
     patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     patient.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleViewRecords = (patient) => {
+    setSelectedPatient(patient);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setSelectedPatient(null);
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -71,7 +84,10 @@ const DoctorPatients = () => {
                   </div>
                 </div>
                 
-                <button className="w-full btn-secondary text-sm py-2">
+                <button 
+                  onClick={() => handleViewRecords(patient)}
+                  className="w-full btn-secondary text-sm py-2"
+                >
                   View Medical Records
                 </button>
               </div>
@@ -86,6 +102,141 @@ const DoctorPatients = () => {
           )}
         </div>
       </div>
+
+      {/* Medical Records Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        title={`Medical Records - ${selectedPatient?.name}`}
+      >
+        {selectedPatient && (
+          <div className="space-y-6">
+            {/* Patient Info Summary */}
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center space-x-4">
+                <img
+                  src={selectedPatient.image}
+                  alt={selectedPatient.name}
+                  className="w-16 h-16 rounded-full object-cover"
+                />
+                <div>
+                  <h3 className="font-semibold text-lg">{selectedPatient.name}</h3>
+                  <p className="text-sm text-gray-600">{selectedPatient.age} years, {selectedPatient.gender}</p>
+                  <p className="text-sm text-gray-600">Blood Group: {selectedPatient.bloodGroup}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Allergies */}
+            {selectedPatient.allergies && selectedPatient.allergies.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  <h4 className="font-semibold text-red-800">Allergies</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPatient.allergies.map((allergy, index) => (
+                    <span key={index} className="bg-red-100 text-red-800 text-sm px-3 py-1 rounded-full">
+                      {allergy}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Chronic Conditions */}
+            {selectedPatient.chronicConditions && selectedPatient.chronicConditions.length > 0 && (
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <Activity className="h-5 w-5 text-blue-600" />
+                  <h4 className="font-semibold text-gray-900">Chronic Conditions</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedPatient.chronicConditions.map((condition, index) => (
+                    <span key={index} className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                      {condition}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Medical Records History */}
+            <div>
+              <h4 className="font-semibold text-gray-900 mb-4 flex items-center space-x-2">
+                <Calendar className="h-5 w-5" />
+                <span>Visit History</span>
+              </h4>
+              <div className="space-y-4">
+                {selectedPatient.medicalRecords && selectedPatient.medicalRecords.length > 0 ? (
+                  selectedPatient.medicalRecords.map((record) => (
+                    <div key={record.id} className="border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2 text-sm text-gray-500">
+                          <Clock className="h-4 w-4" />
+                          <span>{record.date}</span>
+                        </div>
+                        <span className="text-sm font-medium text-blue-600">{record.specialization}</span>
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Doctor</p>
+                          <p className="text-gray-900">{record.doctor}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-500">Diagnosis</p>
+                          <p className="text-gray-900">{record.diagnosis}</p>
+                        </div>
+                        {record.prescription && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500 flex items-center space-x-1">
+                              <Pill className="h-4 w-4" />
+                              <span>Prescription</span>
+                            </p>
+                            <p className="text-gray-900">{record.prescription}</p>
+                          </div>
+                        )}
+                        {record.notes && (
+                          <div>
+                            <p className="text-sm font-medium text-gray-500">Notes</p>
+                            <p className="text-gray-900 text-sm">{record.notes}</p>
+                          </div>
+                        )}
+                        
+                        {/* Vital Signs */}
+                        <div className="bg-gray-50 rounded-lg p-3 mt-2">
+                          <p className="text-sm font-medium text-gray-500 mb-2">Vital Signs</p>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <span className="text-gray-500">BP:</span>{' '}
+                              <span className="font-medium">{record.vitals?.bloodPressure}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Heart Rate:</span>{' '}
+                              <span className="font-medium">{record.vitals?.heartRate}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Temp:</span>{' '}
+                              <span className="font-medium">{record.vitals?.temperature}</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-500">Weight:</span>{' '}
+                              <span className="font-medium">{record.vitals?.weight}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500 text-center py-4">No medical records available</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

@@ -40,7 +40,7 @@ const Sidebar = ({ userRole }) => {
     patientMenuItems;
 
   return (
-    <aside className="w-64 bg-white shadow-lg min-h-screen fixed left-0 top-0 pt-16">
+    <aside className="w-64 bg-white/80 backdrop-blur-md shadow-lg min-h-screen fixed left-0 top-0 pt-16 border-r border-white/20">
       <div className="p-4">
         <nav className="space-y-2">
           {menuItems.map((item) => {

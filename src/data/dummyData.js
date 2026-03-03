@@ -67,7 +67,56 @@ export const patients = [
     gender: 'Male',
     address: '123 Main St, City, State',
     bloodGroup: 'O+',
-    image: 'https://ui-avatars.com/api/?name=John+Doe&background=00bcd4&color=fff&size=128'
+    image: 'https://ui-avatars.com/api/?name=John+Doe&background=00bcd4&color=fff&size=128',
+    medicalRecords: [
+      {
+        id: 1,
+        date: '2026-01-15',
+        doctor: 'Dr. Sarah Johnson',
+        specialization: 'Cardiologist',
+        diagnosis: 'Hypertension Stage 1',
+        prescription: 'Lisinopril 10mg once daily',
+        notes: 'Patient advised to reduce salt intake and exercise regularly. Follow-up in 3 months.',
+        vitals: {
+          bloodPressure: '140/90 mmHg',
+          heartRate: '78 bpm',
+          temperature: '98.4°F',
+          weight: '180 lbs'
+        }
+      },
+      {
+        id: 2,
+        date: '2025-11-20',
+        doctor: 'Dr. Michael Chen',
+        specialization: 'Neurologist',
+        diagnosis: 'Tension Headache',
+        prescription: 'Ibuprofen 400mg as needed',
+        notes: 'Stress-related headaches. Recommended relaxation techniques.',
+        vitals: {
+          bloodPressure: '135/85 mmHg',
+          heartRate: '72 bpm',
+          temperature: '98.2°F',
+          weight: '178 lbs'
+        }
+      },
+      {
+        id: 3,
+        date: '2025-08-10',
+        doctor: 'Dr. Sarah Johnson',
+        specialization: 'Cardiologist',
+        diagnosis: 'Routine Checkup',
+        prescription: 'None',
+        notes: 'Overall health is good. Continue healthy lifestyle.',
+        vitals: {
+          bloodPressure: '130/80 mmHg',
+          heartRate: '75 bpm',
+          temperature: '98.6°F',
+          weight: '175 lbs'
+        }
+      }
+    ],
+    allergies: ['Penicillin', 'Dust mites'],
+    chronicConditions: ['Hypertension', 'High Cholesterol']
   },
   {
     id: 2,
@@ -78,7 +127,41 @@ export const patients = [
     gender: 'Female',
     address: '456 Oak Ave, City, State',
     bloodGroup: 'A+',
-    image: 'https://ui-avatars.com/api/?name=Jane+Smith&background=2196f3&color=fff&size=128'
+    image: 'https://ui-avatars.com/api/?name=Jane+Smith&background=2196f3&color=fff&size=128',
+    medicalRecords: [
+      {
+        id: 1,
+        date: '2026-02-10',
+        doctor: 'Dr. Emily Rodriguez',
+        specialization: 'Pediatrician',
+        diagnosis: 'Annual Wellness Visit',
+        prescription: 'Vitamin D3 1000IU daily',
+        notes: 'Patient is in good health. Recommended maintaining balanced diet.',
+        vitals: {
+          bloodPressure: '120/75 mmHg',
+          heartRate: '68 bpm',
+          temperature: '98.4°F',
+          weight: '135 lbs'
+        }
+      },
+      {
+        id: 2,
+        date: '2025-09-15',
+        doctor: 'Dr. Lisa Anderson',
+        specialization: 'Dermatologist',
+        diagnosis: 'Mild Acne',
+        prescription: 'Benzoyl Peroxide 5% gel',
+        notes: 'Follow skincare routine. Avoid oily products.',
+        vitals: {
+          bloodPressure: '118/72 mmHg',
+          heartRate: '70 bpm',
+          temperature: '98.2°F',
+          weight: '132 lbs'
+        }
+      }
+    ],
+    allergies: ['Shellfish'],
+    chronicConditions: []
   },
   {
     id: 3,
@@ -89,7 +172,56 @@ export const patients = [
     gender: 'Male',
     address: '789 Pine Rd, City, State',
     bloodGroup: 'B+',
-    image: 'https://ui-avatars.com/api/?name=David+Brown&background=00bcd4&color=fff&size=128'
+    image: 'https://ui-avatars.com/api/?name=David+Brown&background=00bcd4&color=fff&size=128',
+    medicalRecords: [
+      {
+        id: 1,
+        date: '2026-01-28',
+        doctor: 'Dr. James Wilson',
+        specialization: 'Orthopedic',
+        diagnosis: 'Chronic Lower Back Pain',
+        prescription: 'Naproxen 500mg twice daily, Physical Therapy',
+        notes: 'MRI recommended if pain persists. Patient works desk job - ergonomic assessment needed.',
+        vitals: {
+          bloodPressure: '138/88 mmHg',
+          heartRate: '80 bpm',
+          temperature: '98.6°F',
+          weight: '210 lbs'
+        }
+      },
+      {
+        id: 2,
+        date: '2025-10-05',
+        doctor: 'Dr. Sarah Johnson',
+        specialization: 'Cardiologist',
+        diagnosis: 'Type 2 Diabetes - Well Controlled',
+        prescription: 'Metformin 500mg twice daily',
+        notes: 'HbA1c at 6.5%. Continue current medication and diet plan.',
+        vitals: {
+          bloodPressure: '132/82 mmHg',
+          heartRate: '76 bpm',
+          temperature: '98.4°F',
+          weight: '205 lbs'
+        }
+      },
+      {
+        id: 3,
+        date: '2025-06-12',
+        doctor: 'Dr. Robert Taylor',
+        specialization: 'General Physician',
+        diagnosis: 'Upper Respiratory Infection',
+        prescription: 'Amoxicillin 500mg three times daily',
+        notes: 'Viral infection. Rest and fluids recommended.',
+        vitals: {
+          bloodPressure: '128/80 mmHg',
+          heartRate: '82 bpm',
+          temperature: '101.2°F',
+          weight: '208 lbs'
+        }
+      }
+    ],
+    allergies: ['Sulfa drugs', 'Latex'],
+    chronicConditions: ['Type 2 Diabetes', 'Lower Back Pain', 'Obesity']
   },
   {
     id: 4,
@@ -100,7 +232,56 @@ export const patients = [
     gender: 'Female',
     address: '321 Elm St, City, State',
     bloodGroup: 'AB+',
-    image: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=2196f3&color=fff&size=128'
+    image: 'https://ui-avatars.com/api/?name=Maria+Garcia&background=2196f3&color=fff&size=128',
+    medicalRecords: [
+      {
+        id: 1,
+        date: '2026-02-05',
+        doctor: 'Dr. Emily Rodriguez',
+        specialization: 'Pediatrician',
+        diagnosis: 'Prenatal Checkup - 28 Weeks',
+        prescription: 'Prenatal vitamins, Iron supplements',
+        notes: 'Pregnancy progressing well. Ultrasound shows healthy fetus. Recommended prenatal classes.',
+        vitals: {
+          bloodPressure: '115/70 mmHg',
+          heartRate: '72 bpm',
+          temperature: '98.2°F',
+          weight: '145 lbs'
+        }
+      },
+      {
+        id: 2,
+        date: '2025-12-10',
+        doctor: 'Dr. Robert Taylor',
+        specialization: 'General Physician',
+        diagnosis: 'Pregnancy Confirmed',
+        prescription: 'Folic Acid 400mcg daily',
+        notes: 'Confirmed pregnancy at 8 weeks. Referred to OB/GYN for prenatal care.',
+        vitals: {
+          bloodPressure: '118/72 mmMHz',
+          heartRate: '70 bpm',
+          temperature: '98.4°F',
+          weight: '130 lbs'
+        }
+      },
+      {
+        id: 3,
+        date: '2025-07-20',
+        doctor: 'Dr. Lisa Anderson',
+        specialization: 'Dermatologist',
+        diagnosis: 'Eczema',
+        prescription: 'Hydrocortisone cream 1%, Moisturizer',
+        notes: 'Mild eczema on arms. Identified triggers: stress, certain soaps.',
+        vitals: {
+          bloodPressure: '116/74 mmHg',
+          heartRate: '68 bpm',
+          temperature: '98.4°F',
+          weight: '128 lbs'
+        }
+      }
+    ],
+    allergies: ['Peanuts', 'Eggs'],
+    chronicConditions: ['Eczema']
   }
 ];
 
