@@ -1,13 +1,18 @@
-# TODO: Fix View Medical Records functionality
+# TODO: Backend Improvements
 
 ## Plan:
-1. Add medical records data to dummyData.js
-2. Update DoctorPatients.jsx to display medical records in a modal when clicked
+1. Add Medical Records API endpoints
+2. Add input validation
+3. Add rate limiting
+4. Improve error handling
 
 ## Status: Completed
 - [x] Read and understand current implementation
-- [x] Add medical records data to dummyData.js
-- [x] Update DoctorPatients.jsx with modal functionality
-- [x] Test the implementation
+- [x] Add Medical Records API endpoints
+- [x] Add input validation
+- [x] Add rate limiting
+- [x] Improve error handling
+
+
 
 
