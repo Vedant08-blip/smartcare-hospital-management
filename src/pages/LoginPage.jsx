@@ -131,8 +131,13 @@ const LoginPage = () => {
     }
   };
 
-  const fillDemo = () => {
-    setForm({ email: selectedRole.demo, password: "123456" });
+const fillDemo = () => {
+    const passwords = {
+      admin: 'SmartAdmin2024!',
+      doctor: 'SmartDoc2024!',
+      patient: 'SmartPatient2024!'
+    };
+    setForm({ email: selectedRole.demo, password: passwords[role] });
   };
 
   return (

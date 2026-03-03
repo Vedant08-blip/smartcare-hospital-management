@@ -107,12 +107,12 @@ const getInitialAppointments = () => {
 
 let localAppointments = getInitialAppointments();
 
-// Local users for fallback
+// Local users for fallback (use unique passwords to avoid breach warnings)
 const LOCAL_USERS = [
-  { id: 1, email: 'admin@smartcare.com', password: '123456', role: 'admin', name: 'Admin User' },
-  { id: 2, email: 'doctor@smartcare.com', password: '123456', role: 'doctor', name: 'Dr. Sarah Johnson' },
-  { id: 3, email: 'patient@email.com', password: '123456', role: 'patient', name: 'John Doe' },
-  { id: 4, email: 'patient2@email.com', password: '123456', role: 'patient', name: 'Jane Smith' }
+  { id: 1, email: 'admin@smartcare.com', password: 'SmartAdmin2024!', role: 'admin', name: 'Admin User' },
+  { id: 2, email: 'doctor@smartcare.com', password: 'SmartDoc2024!', role: 'doctor', name: 'Dr. Sarah Johnson' },
+  { id: 3, email: 'patient@email.com', password: 'SmartPatient2024!', role: 'patient', name: 'John Doe' },
+  { id: 4, email: 'patient2@email.com', password: 'SmartPatient2!', role: 'patient', name: 'Jane Smith' }
 ];
 
 const USER_ID_TO_PATIENT_ID = { 3: 1, 4: 2 };
@@ -191,6 +191,17 @@ const handleLocalUpdateAppointment = (id, data) => {
   return localAppointments[index];
 };
 
+// Helper to check if error is network-related
+const isNetworkError = (error) => {
+  return (
+    !error.response || // No response means network error
+    error.code === 'ERR_NETWORK' ||
+    error.code === 'ECONNREFUSED' ||
+    error.message.includes('Network Error') ||
+    error.message.includes('Failed to fetch')
+  );
+};
+
 // API functions with real API + optional local fallback
 export const authAPI = {
   login: async (email, password, role) => {
@@ -203,7 +214,8 @@ export const authAPI = {
       }
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      console.log('[API] Login error:', error.message);
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         console.log('[API] Using local login fallback');
         return handleLocalLogin(email, password, role);
       }
@@ -268,7 +280,7 @@ export const doctorsAPI = {
       const response = await api.get('/doctors');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalGetDoctors();
       }
       throw error;
@@ -302,7 +314,7 @@ export const patientsAPI = {
       const response = await api.get('/patients');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalGetPatients();
       }
       throw error;
@@ -348,7 +360,7 @@ export const appointmentsAPI = {
       const response = await api.get(endpoint);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalGetAppointments(role, userId);
       }
       throw error;
@@ -365,7 +377,7 @@ export const appointmentsAPI = {
       const response = await api.post('/appointments', data);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalCreateAppointment(data);
       }
       throw error;
@@ -377,7 +389,7 @@ export const appointmentsAPI = {
       const response = await api.put(`/appointments/${id}`, data);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalUpdateAppointment(id, data);
       }
       throw error;
@@ -389,7 +401,7 @@ export const appointmentsAPI = {
       const response = await api.delete(`/appointments/${id}`);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalCancelAppointment(id);
       }
       throw error;
@@ -403,7 +415,7 @@ export const statsAPI = {
       const response = await api.get('/stats');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && error.code === 'ERR_NETWORK') {
+      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
         return handleLocalStats();
       }
       throw error;
