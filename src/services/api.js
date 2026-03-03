@@ -1,9 +1,8 @@
 import axios from 'axios';
-import { useToast } from '../components/Toast';
 
 // API Configuration
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5002/api';
-const USE_LOCAL_FALLBACK = false; // Force using real API - set to true only for offline development
+const USE_LOCAL_FALLBACK = true; // Use local fallback if API is unavailable
 
 // Create axios instance with default config
 const api = axios.create({
