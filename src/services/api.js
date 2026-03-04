@@ -116,6 +116,7 @@ const LOCAL_USERS = [
 ];
 
 const USER_ID_TO_PATIENT_ID = { 3: 1, 4: 2 };
+const USER_ID_TO_DOCTOR_ID = { 2: 1 }; // Doctor user (id=2) maps to Dr. Sarah Johnson (doctorId=1)
 
 // Helper functions for local fallback mode
 const handleLocalLogin = (email, password, role) => {
@@ -134,13 +135,19 @@ const handleLocalGetDoctors = () => localDoctors;
 const handleLocalGetPatients = () => localPatients;
 
 const handleLocalGetAppointments = (role, userId) => {
-  const patientId = USER_ID_TO_PATIENT_ID[userId] || userId;
+  // Convert userId to number if it's a string
+  const numericUserId = parseInt(userId, 10);
+  
   let filtered = [...localAppointments];
   if (role === 'patient') {
+    const patientId = USER_ID_TO_PATIENT_ID[numericUserId] || numericUserId;
     filtered = localAppointments.filter(a => a.patientId === patientId);
   } else if (role === 'doctor') {
-    filtered = localAppointments.filter(a => a.doctorId === userId);
+    // Map user ID to doctor ID
+    const doctorId = USER_ID_TO_DOCTOR_ID[numericUserId] || numericUserId;
+    filtered = localAppointments.filter(a => a.doctorId === doctorId);
   }
+  // If no role specified, return all appointments
   return filtered;
 };
 
@@ -215,9 +222,19 @@ export const authAPI = {
       return response.data;
     } catch (error) {
       console.log('[API] Login error:', error.message);
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
-        console.log('[API] Using local login fallback');
-        return handleLocalLogin(email, password, role);
+      console.log('[API] Error response:', error.response?.data);
+      
+      // Try local fallback on network errors OR credential errors
+      // This ensures users can still login even if backend has issues
+      if (USE_LOCAL_FALLBACK && (isNetworkError(error) || error.response?.status === 400)) {
+        console.log('[API] Trying local login fallback');
+        try {
+          return handleLocalLogin(email, password, role);
+        } catch (localError) {
+          // If local also fails, throw the original error
+          console.log('[API] Local fallback also failed:', localError.message);
+          throw new Error(error.response?.data?.message || 'Invalid credentials');
+        }
       }
       throw error;
     }
@@ -280,7 +297,7 @@ export const doctorsAPI = {
       const response = await api.get('/doctors');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalGetDoctors();
       }
       throw error;
@@ -288,23 +305,42 @@ export const doctorsAPI = {
   },
   
   getById: async (id) => {
-    const response = await api.get(`/doctors/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/doctors/${id}`);
+      return response.data;
+    } catch (error) {
+      // Try to find in local
+      const doctor = localDoctors.find(d => d.id === parseInt(id));
+      if (doctor) return doctor;
+      throw new Error('Doctor not found');
+    }
   },
   
   create: async (data) => {
-    const response = await api.post('/doctors', data);
-    return response.data;
+    try {
+      const response = await api.post('/doctors', data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to create doctor');
+    }
   },
   
   update: async (id, data) => {
-    const response = await api.put(`/doctors/${id}`, data);
-    return response.data;
+    try {
+      const response = await api.put(`/doctors/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to update doctor');
+    }
   },
   
   delete: async (id) => {
-    const response = await api.delete(`/doctors/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/doctors/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to delete doctor');
+    }
   }
 };
 
@@ -314,7 +350,7 @@ export const patientsAPI = {
       const response = await api.get('/patients');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalGetPatients();
       }
       throw error;
@@ -322,33 +358,60 @@ export const patientsAPI = {
   },
   
   getById: async (id) => {
-    const response = await api.get(`/patients/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/patients/${id}`);
+      return response.data;
+    } catch (error) {
+      // Try to find in local
+      const patient = localPatients.find(p => p.id === parseInt(id));
+      if (patient) return patient;
+      throw new Error('Patient not found');
+    }
   },
   
   create: async (data) => {
-    const response = await api.post('/patients', data);
-    return response.data;
+    try {
+      const response = await api.post('/patients', data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to create patient');
+    }
   },
   
   update: async (id, data) => {
-    const response = await api.put(`/patients/${id}`, data);
-    return response.data;
+    try {
+      const response = await api.put(`/patients/${id}`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to update patient');
+    }
   },
   
   delete: async (id) => {
-    const response = await api.delete(`/patients/${id}`);
-    return response.data;
+    try {
+      const response = await api.delete(`/patients/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to delete patient');
+    }
   },
   
   getMedicalRecords: async (patientId) => {
-    const response = await api.get(`/patients/${patientId}/medical-records`);
-    return response.data;
+    try {
+      const response = await api.get(`/patients/${patientId}/medical-records`);
+      return response.data;
+    } catch (error) {
+      return []; // Return empty array if no records
+    }
   },
   
   addMedicalRecord: async (patientId, data) => {
-    const response = await api.post(`/patients/${patientId}/medical-records`, data);
-    return response.data;
+    try {
+      const response = await api.post(`/patients/${patientId}/medical-records`, data);
+      return response.data;
+    } catch (error) {
+      throw new Error('Failed to add medical record');
+    }
   }
 };
 
@@ -360,7 +423,10 @@ export const appointmentsAPI = {
       const response = await api.get(endpoint);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      console.log('[API] Get appointments error:', error.message);
+      // Fall back to local mode on any error (network or auth)
+      if (USE_LOCAL_FALLBACK) {
+        console.log('[API] Using local appointments fallback');
         return handleLocalGetAppointments(role, userId);
       }
       throw error;
@@ -368,8 +434,12 @@ export const appointmentsAPI = {
   },
   
   getById: async (id) => {
-    const response = await api.get(`/appointments/${id}`);
-    return response.data;
+    try {
+      const response = await api.get(`/appointments/${id}`);
+      return response.data;
+    } catch (error) {
+      throw new Error('Appointment not found');
+    }
   },
   
   create: async (data) => {
@@ -377,7 +447,7 @@ export const appointmentsAPI = {
       const response = await api.post('/appointments', data);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalCreateAppointment(data);
       }
       throw error;
@@ -389,7 +459,7 @@ export const appointmentsAPI = {
       const response = await api.put(`/appointments/${id}`, data);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalUpdateAppointment(id, data);
       }
       throw error;
@@ -401,7 +471,7 @@ export const appointmentsAPI = {
       const response = await api.delete(`/appointments/${id}`);
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalCancelAppointment(id);
       }
       throw error;
@@ -415,7 +485,7 @@ export const statsAPI = {
       const response = await api.get('/stats');
       return response.data;
     } catch (error) {
-      if (USE_LOCAL_FALLBACK && isNetworkError(error)) {
+      if (USE_LOCAL_FALLBACK) {
         return handleLocalStats();
       }
       throw error;

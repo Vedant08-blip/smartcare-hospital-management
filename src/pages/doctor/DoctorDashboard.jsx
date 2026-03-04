@@ -34,8 +34,8 @@ const DoctorDashboard = () => {
 
   const fetchDoctorAndAppointments = async (userId) => {
     try {
-      // Get all appointments
-      const data = await appointmentsAPI.getAll();
+      // Get appointments for this doctor
+      const data = await appointmentsAPI.getAll('doctor', userId);
       
       if (data && Array.isArray(data)) {
         setAppointments(data);
