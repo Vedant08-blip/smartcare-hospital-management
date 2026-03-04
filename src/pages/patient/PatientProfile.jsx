@@ -28,7 +28,7 @@ const PatientProfile = () => {
       <Navbar isAuthenticated={true} userRole="patient" />
       <Sidebar userRole="patient" />
       
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Profile</h1>

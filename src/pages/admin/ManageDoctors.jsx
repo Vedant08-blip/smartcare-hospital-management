@@ -61,7 +61,7 @@ const ManageDoctors = () => {
       <Navbar isAuthenticated={true} userRole="admin" />
       <Sidebar userRole="admin" />
 
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>

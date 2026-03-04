@@ -162,7 +162,7 @@ const BookAppointment = () => {
       <Navbar isAuthenticated userRole="patient" />
       <Sidebar userRole="patient" />
 
-      <main className="ml-64 pt-20 px-8 pb-10">
+      <main className="lg:ml-64 pt-20 px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
           {/* -------- Header -------- */}
           <header className="mb-8">
