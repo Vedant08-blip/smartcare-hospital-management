@@ -105,31 +105,39 @@ const AdminDashboard = () => {
 
               {/* Stats */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                  title="Total Doctors"
-                  value={adminStats.totalDoctors}
-                  icon={Stethoscope}
-                />
-                <StatCard
-                  title="Total Patients"
-                  value={adminStats.totalPatients}
-                  icon={Users}
-                />
-                <StatCard
-                  title="Appointments Today"
-                  value={adminStats.appointmentsToday}
-                  icon={Calendar}
-                />
-                <StatCard
-                  title="Total Appointments"
-                  value={adminStats.totalAppointments}
-                  icon={Activity}
-                />
+                <div className="animate-fadeInUp stagger-1">
+                  <StatCard
+                    title="Total Doctors"
+                    value={adminStats.totalDoctors}
+                    icon={Stethoscope}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-2">
+                  <StatCard
+                    title="Total Patients"
+                    value={adminStats.totalPatients}
+                    icon={Users}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-3">
+                  <StatCard
+                    title="Appointments Today"
+                    value={adminStats.appointmentsToday}
+                    icon={Calendar}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-4">
+                  <StatCard
+                    title="Total Appointments"
+                    value={adminStats.totalAppointments}
+                    icon={Activity}
+                  />
+                </div>
               </div>
 
               {/* Charts */}
               <div className="grid lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow">
+                <div className="bg-white p-6 rounded-xl shadow animate-fadeInUp stagger-5">
                   <h3 className="font-semibold mb-4">
                     Monthly Appointments
                   </h3>
@@ -138,7 +146,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow">
+                <div className="bg-white p-6 rounded-xl shadow animate-fadeInUp stagger-6">
                   <h3 className="font-semibold mb-4">
                     Appointment Status
                   </h3>
@@ -149,13 +157,13 @@ const AdminDashboard = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-white p-6 rounded-xl shadow">
+              <div className="bg-white p-6 rounded-xl shadow animate-fadeInUp stagger-7">
                 <h3 className="font-semibold mb-4">Quick Actions</h3>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <button
                     onClick={() => setCurrentView('addPatient')}
-                    className="p-5 bg-green-50 rounded-xl hover:bg-green-100 transition"
+                    className="p-5 bg-green-50 rounded-xl hover:bg-green-100 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   >
                     <Users className="mb-2 text-green-600" />
                     Add Patient
@@ -163,7 +171,7 @@ const AdminDashboard = () => {
 
                   <button
                     onClick={() => setCurrentView('appointments')}
-                    className="p-5 bg-purple-50 rounded-xl hover:bg-purple-100 transition"
+                    className="p-5 bg-purple-50 rounded-xl hover:bg-purple-100 transition-all duration-300 hover:scale-105 hover:shadow-lg"
                   >
                     <Calendar className="mb-2 text-purple-600" />
                     View Appointments

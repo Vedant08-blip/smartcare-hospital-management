@@ -174,23 +174,24 @@ const fillDemo = () => {
           {/* Role Selection */}
           {showRoleSelection && (
             <section className="grid gap-6 md:grid-cols-3 mb-10">
-              {ROLES.map(({ id, name, description, icon: Icon, color }) => {
+              {ROLES.map(({ id, name, description, icon: Icon, color }, index) => {
                 const active = role === id;
                 return (
                   <button
                     key={id}
                     onClick={() => setRole(id)}
-                    className={`card text-center transition-all duration-300 
+                    className={`card text-center transition-all duration-300 animate-fadeInUp hover:scale-105 hover:shadow-xl
                       ${active ? `border-2 border-${color}-400 bg-${color}-50` : "hover:border-primary-300"}
                     `}
+                    style={{ animationDelay: `${index * 0.1}s` }}
                   >
                     <div
-                      className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full 
-                        ${active ? `bg-${color}-100` : "bg-gray-100"}
+                      className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full transition-transform duration-300
+                        ${active ? `bg-${color}-100 scale-110` : "bg-gray-100"}
                       `}
                     >
                       <Icon
-                        className={`h-8 w-8 ${
+                        className={`h-8 w-8 transition-colors duration-300 ${
                           active ? `text-${color}-600` : "text-gray-500"
                         }`}
                       />

@@ -68,11 +68,15 @@ const Sidebar = ({ userRole }) => {
       {/* Mobile menu toggle button */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-[60] p-2 rounded-md bg-white shadow-lg text-gray-700 hover:bg-gray-100 border border-gray-200"
+        className="lg:hidden fixed top-4 left-4 z-[60] p-2 rounded-md bg-white shadow-lg text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all duration-200 hover:scale-110 hover:shadow-xl"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
       >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        {isOpen ? (
+          <X className="h-6 w-6 animate-scaleIn" />
+        ) : (
+          <Menu className="h-6 w-6" />
+        )}
       </button>
 
       {/* Backdrop overlay */}
