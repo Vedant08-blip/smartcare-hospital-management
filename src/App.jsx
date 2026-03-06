@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+// Toast Provider
+import { ToastProvider } from './components/Toast';
+
 // Landing & Auth Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -27,46 +30,49 @@ import PatientProfile from './pages/patient/PatientProfile';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/services" element={<ServicesPage />} />
-        <Route path="/register-doctor" element={<DoctorRegistration />} />
+    <ToastProvider>
+      <Router>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/services" element={<ServicesPage />} />
+          <Route path="/register-doctor" element={<DoctorRegistration />} />
 
-        {/* Admin Routes */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/doctors" element={<ManageDoctors />} />
-        <Route path="/admin/patients" element={<ManagePatients />} />
-        <Route path="/admin/appointments" element={<AppointmentsOverview />} />
-        <Route path="/admin/profile" element={<AdminProfile />} />
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/doctors" element={<ManageDoctors />} />
+          <Route path="/admin/patients" element={<ManagePatients />} />
+          <Route path="/admin/appointments" element={<AppointmentsOverview />} />
+          <Route path="/admin/profile" element={<AdminProfile />} />
 
-        {/* Doctor Routes */}
-        <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
-        <Route path="/doctor/appointments" element={<DoctorAppointments />} />
-        <Route path="/doctor/patients" element={<DoctorPatients />} />
-        <Route path="/doctor/profile" element={<DoctorProfile />} />
+          {/* Doctor Routes */}
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/doctor/appointments" element={<DoctorAppointments />} />
+          <Route path="/doctor/patients" element={<DoctorPatients />} />
+          <Route path="/doctor/profile" element={<DoctorProfile />} />
 
-        {/* Patient Routes */}
-        <Route path="/patient/dashboard" element={<PatientDashboard />} />
-        <Route path="/patient/book-appointment" element={<BookAppointment />} />
-        <Route path="/patient/appointments" element={<MyAppointments />} />
-        <Route path="/patient/profile" element={<PatientProfile />} />
+          {/* Patient Routes */}
+          <Route path="/patient/dashboard" element={<PatientDashboard />} />
+          <Route path="/patient/book-appointment" element={<BookAppointment />} />
+          <Route path="/patient/appointments" element={<MyAppointments />} />
+          <Route path="/patient/profile" element={<PatientProfile />} />
 
-        {/* 404 Route */}
-        <Route path="*" element={
-          <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-gray-600 mb-8">Page not found</p>
-              <a href="/" className="btn-primary">Go Home</a>
+          {/* 404 Route */}
+          <Route path="*" element={
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
+                <p className="text-gray-600 mb-8">Page not found</p>
+                <a href="/" className="btn-primary">Go Home</a>
+              </div>
             </div>
-          </div>
-        } />
-      </Routes>
-    </Router>
+          } />
+        </Routes>
+      </Router>
+    </ToastProvider>
   );
 }
 
 export default App;
+
