@@ -3,6 +3,7 @@ import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
 import { appointmentsAPI, authAPI } from '../../services/api';
+import { useToast } from '../../components/Toast';
 import { Calendar, Clock, User, Search, Stethoscope } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -13,18 +14,26 @@ const DoctorAppointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
-    fetchAppointments();
+    const currentUser = authAPI.getCurrentUser();
+    if (currentUser) {
+      fetchAppointments(currentUser.id);
+    } else {
+      setLoading(false);
+    }
   }, []);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = async (userId) => {
     try {
-      const data = await appointmentsAPI.getAll();
+      // Pass role and userId to get filtered appointments
+      const data = await appointmentsAPI.getAll('doctor', userId);
       setAppointments(data || []);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       setAppointments([]);
+      toast.error('Failed to load appointments');
     } finally {
       setLoading(false);
     }
@@ -46,10 +55,10 @@ const DoctorAppointments = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      alert('Appointment marked as completed!');
+      toast.success('Appointment marked as completed!');
     } catch (error) {
       console.error('Error updating appointment:', error);
-      alert('Failed to update appointment. Please try again.');
+      toast.error('Failed to update appointment. Please try again.');
     } finally {
       setUpdating(false);
     }
@@ -58,10 +67,10 @@ const DoctorAppointments = () => {
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
 
+  // Filter appointments - show all appointments for the doctor (not just today's)
   const filteredAppointments = appointments.filter(apt =>
-    (apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    apt.reason.toLowerCase().includes(searchTerm.toLowerCase())) &&
-    apt.date === today
+    apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    apt.reason.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -69,7 +78,7 @@ const DoctorAppointments = () => {
       <Navbar isAuthenticated={true} userRole="doctor" />
       <Sidebar userRole="doctor" />
       
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 pl-12 lg:pl-4 px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <div>

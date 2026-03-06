@@ -78,7 +78,7 @@ const ManagePatients = () => {
       <Navbar isAuthenticated={true} userRole="admin" />
       <Sidebar userRole="admin" />
 
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 pl-12 lg:pl-4 px-4 sm:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
 
           {/* Header */}

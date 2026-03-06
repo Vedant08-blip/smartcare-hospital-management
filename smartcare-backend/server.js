@@ -152,13 +152,15 @@ const saveData = (data) => {
 let db = loadData();
 
 if (!db) {
-  // Initialize with default data
-  const hashedPassword = bcrypt.hashSync('123456', 10);
+  // Initialize with default data (using unique passwords)
+  const hashedPasswordAdmin = bcrypt.hashSync('SmartAdmin2024!', 10);
+  const hashedPasswordDoctor = bcrypt.hashSync('SmartDoc2024!', 10);
+  const hashedPasswordPatient = bcrypt.hashSync('SmartPatient2024!', 10);
   db = {
     users: [
-      { id: 1, email: 'admin@smartcare.com', password: hashedPassword, role: 'admin', name: 'Admin User' },
-      { id: 2, email: 'doctor@smartcare.com', password: hashedPassword, role: 'doctor', name: 'Dr. Sarah Johnson' },
-      { id: 3, email: 'patient@email.com', password: hashedPassword, role: 'patient', name: 'John Doe' }
+      { id: 1, email: 'admin@smartcare.com', password: hashedPasswordAdmin, role: 'admin', name: 'Admin User' },
+      { id: 2, email: 'doctor@smartcare.com', password: hashedPasswordDoctor, role: 'doctor', name: 'Dr. Sarah Johnson' },
+      { id: 3, email: 'patient@email.com', password: hashedPasswordPatient, role: 'patient', name: 'John Doe' }
     ],
     doctors: [
       { id: 1, name: 'Dr. Sarah Johnson', specialization: 'Cardiologist', email: 'sarah.johnson@smartcare.com', phone: '+1 234-567-8901', experience: '10 years', image: 'https://ui-avatars.com/api/?name=Sarah+Johnson&background=00bcd4&color=fff&size=128' },

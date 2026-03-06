@@ -1,5 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
+// Toast Provider
+import { ToastProvider } from './components/Toast';
+
 // Landing & Auth Pages
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -27,8 +30,9 @@ import PatientProfile from './pages/patient/PatientProfile';
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ToastProvider>
+      <Router>
+        <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
@@ -66,6 +70,7 @@ function App() {
         } />
       </Routes>
     </Router>
+    </ToastProvider>
   );
 }
 
