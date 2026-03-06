@@ -39,7 +39,7 @@ setTimeout(() => {
 
 ## 🔌 How to Connect a Backend
 
-### Option 1: Node.js + Express + MongoDB (Recommended)
+### Option 1: Node.js + Express + MongoDB
 
 This is the most common and well-suited stack for this React frontend.
 
