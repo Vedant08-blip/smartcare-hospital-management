@@ -66,10 +66,10 @@ let localAppointments = getInitialAppointments();
 
 // Auth credentials (for local mode)
 const LOCAL_USERS = [
-  { id: 1, email: 'admin@smartcare.com', password: '123456', role: 'admin', name: 'Admin User' },
-  { id: 2, email: 'doctor@smartcare.com', password: '123456', role: 'doctor', name: 'Dr. Sarah Johnson' },
-  { id: 3, email: 'patient@email.com', password: '123456', role: 'patient', name: 'John Doe' },
-  { id: 4, email: 'patient2@email.com', password: '123456', role: 'patient', name: 'Jane Smith' }
+  { id: 1, email: 'admin@smartcare.com', password: 'SmartAdmin2024!', role: 'admin', name: 'Admin User' },
+  { id: 2, email: 'doctor@smartcare.com', password: 'SmartDoc2024!', role: 'doctor', name: 'Dr. Sarah Johnson' },
+  { id: 3, email: 'patient@email.com', password: 'SmartPatient2024!', role: 'patient', name: 'John Doe' },
+  { id: 4, email: 'patient2@email.com', password: 'SmartPatient2024!', role: 'patient', name: 'Jane Smith' }
 ];
 
 // Map user IDs to patient IDs for appointment filtering
