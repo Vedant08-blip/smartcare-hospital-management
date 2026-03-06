@@ -61,17 +61,17 @@ const ManageDoctors = () => {
       <Navbar isAuthenticated={true} userRole="admin" />
       <Sidebar userRole="admin" />
 
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-3xl font-bold">Manage Doctors</h1>
-              <p className="text-gray-600">View and manage doctors</p>
+              <h1 className="text-2xl sm:text-3xl font-bold">Manage Doctors</h1>
+              <p className="text-gray-600 text-sm sm:text-base">View and manage doctors</p>
             </div>
           </div>
 
           {/* Doctors Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {doctors.map((doctor) => (
               <div key={doctor.id} className="card p-4 shadow-md">
                 <img
@@ -119,9 +119,9 @@ const ManageDoctors = () => {
 
       {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-xl w-96">
-            <h2 className="text-xl font-bold mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center p-3 sm:p-4 z-50">
+          <div className="bg-white p-4 sm:p-6 rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg sm:text-xl font-bold mb-4">
               Edit Doctor
             </h2>
 
@@ -130,48 +130,48 @@ const ManageDoctors = () => {
               placeholder="Name"
               value={formData.name}
               onChange={handleChange}
-              className="input mb-2 w-full"
+              className="input-field mb-2 w-full"
             />
             <input
               name="specialization"
               placeholder="Specialization"
               value={formData.specialization}
               onChange={handleChange}
-              className="input mb-2 w-full"
+              className="input-field mb-2 w-full"
             />
             <input
               name="email"
               placeholder="Email"
               value={formData.email}
               onChange={handleChange}
-              className="input mb-2 w-full"
+              className="input-field mb-2 w-full"
             />
             <input
               name="phone"
               placeholder="Phone"
               value={formData.phone}
               onChange={handleChange}
-              className="input mb-2 w-full"
+              className="input-field mb-2 w-full"
             />
             <input
               name="experience"
               placeholder="Experience"
               value={formData.experience}
               onChange={handleChange}
-              className="input mb-4 w-full"
+              className="input-field mb-4 w-full"
             />
 
-            <div className="flex justify-end space-x-2">
+            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2">
               <button
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 bg-gray-200 rounded"
+                className="px-4 py-2 bg-gray-200 rounded-lg text-sm"
               >
                 Cancel
               </button>
 
               <button
                 onClick={handleUpdateDoctor}
-                className="px-4 py-2 bg-blue-600 text-white rounded"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
               >
                 Update
               </button>

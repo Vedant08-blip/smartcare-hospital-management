@@ -5,6 +5,27 @@
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900;
+    /* Prevent horizontal scroll on mobile */
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Ensure proper box sizing */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
+  /* Prevent text selection on UI elements for better touch experience */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Improve touch targets on mobile */
+  @media (max-width: 640px) {
+    button, a, input, select, textarea, [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 }
 
