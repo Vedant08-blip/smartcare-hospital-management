@@ -4,6 +4,8 @@ import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
+import { useToast } from '../../components/Toast';
+import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { doctors } from '../../data/dummyData';
 import { appointmentsAPI, authAPI } from '../../services/api';
 import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
@@ -11,11 +13,13 @@ import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
 const PatientDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [currentView, setCurrentView] = useState('upcoming');
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     // Get current user from localStorage
@@ -41,10 +45,11 @@ const PatientDashboard = () => {
     try {
       const data = await appointmentsAPI.getAll('patient', userId);
       setAppointments(data || []);
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      // Fall back to dummy data if API fails
-      setAppointments([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError(err.message || 'Failed to load appointments');
+      toast.error('Failed to load appointments. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -64,11 +69,11 @@ const PatientDashboard = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      // Show success message (you could use a toast notification here)
-      alert('Appointment cancelled successfully!');
+      // Show success toast
+      toast.success('Appointment cancelled successfully!');
     } catch (error) {
       console.error('Error cancelling appointment:', error);
-      alert('Failed to cancel appointment. Please try again.');
+      toast.error('Failed to cancel appointment. Please try again.');
     } finally {
       setCancelling(false);
     }
@@ -83,15 +88,15 @@ const PatientDashboard = () => {
       <Navbar isAuthenticated={true} userRole="patient" />
       <Sidebar userRole="patient" />
       
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Patient Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Manage your appointments and health records.</p>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Patient Dashboard</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Welcome back! Manage your appointments and health records.</p>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <Link to="/patient/book-appointment" className="card hover:shadow-lg transition-shadow cursor-pointer">
               <div className="flex items-center space-x-4">
                 <div className="p-3 bg-primary-50 rounded-lg">
@@ -157,10 +162,10 @@ const PatientDashboard = () => {
             
             {currentView === 'upcoming' ? (
               upcomingAppointments.length === 0 ? (
-                <div className="text-center py-12">
-                  <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <div className="text-center py-8 sm:py-12">
+                  <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-4">No upcoming appointments</p>
-                  <Link to="/patient/book-appointment" className="btn-primary inline-block">
+                  <Link to="/patient/book-appointment" className="btn-primary inline-block text-sm sm:text-base">
                       View Available Doctors
                   </Link>
                    </div>
@@ -171,34 +176,34 @@ const PatientDashboard = () => {
                     .map((appointment) => (
                       <div
                         key={appointment.id}
-                        className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                        className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
                       >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3 mb-3">
-                              <Stethoscope className="h-5 w-5 text-primary-600" />
-                              <h3 className="text-lg font-semibold text-gray-900">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                              <Stethoscope className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                              <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                                 {appointment.doctorName}
                               </h3>
                               <StatusBadge status={appointment.status} />
                             </div>
-                            <p className="text-sm text-primary-600 mb-3">{appointment.specialization}</p>
-                            <div className="flex items-center space-x-4 text-gray-600">
-                              <div className="flex items-center space-x-2">
-                                <Calendar className="h-4 w-4" />
-                                <span className="text-sm">{appointment.date}</span>
+                            <p className="text-sm text-primary-600 mb-3 truncate">{appointment.specialization}</p>
+                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
+                              <div className="flex items-center space-x-1.5">
+                                <Calendar className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{appointment.date}</span>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <Clock className="h-4 w-4" />
-                                <span className="text-sm">{appointment.time}</span>
+                              <div className="flex items-center space-x-1.5">
+                                <Clock className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{appointment.time}</span>
                               </div>
                             </div>
-                            <p className="text-gray-700 mt-3">
+                            <p className="text-gray-700 mt-3 text-sm truncate">
                               <span className="font-medium">Reason:</span> {appointment.reason}
                             </p>
                           </div>
                           <button 
-                            className="btn-secondary text-sm"
+                            className="btn-secondary text-sm whitespace-nowrap self-start sm:self-center"
                             onClick={() => {
                               setSelectedAppointment(appointment);
                               setShowDetailsModal(true);
@@ -214,8 +219,8 @@ const PatientDashboard = () => {
             ) : (
               /* History View */
               completedAppointments.length === 0 ? (
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <div className="text-center py-8 sm:py-12">
+                  <FileText className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600">No appointment history</p>
                 </div>
               ) : (
@@ -223,29 +228,29 @@ const PatientDashboard = () => {
                   {completedAppointments.map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                      className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-3 mb-3">
-                            <Stethoscope className="h-5 w-5 text-primary-600" />
-                            <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                            <Stethoscope className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                               {appointment.doctorName}
                             </h3>
                             <StatusBadge status={appointment.status} />
                           </div>
-                          <p className="text-sm text-primary-600 mb-3">{appointment.specialization}</p>
-                          <div className="flex items-center space-x-4 text-gray-600">
-                            <div className="flex items-center space-x-2">
-                              <Calendar className="h-4 w-4" />
-                              <span className="text-sm">{appointment.date}</span>
+                          <p className="text-sm text-primary-600 mb-3 truncate">{appointment.specialization}</p>
+                          <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
+                            <div className="flex items-center space-x-1.5">
+                              <Calendar className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{appointment.date}</span>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <Clock className="h-4 w-4" />
-                              <span className="text-sm">{appointment.time}</span>
+                            <div className="flex items-center space-x-1.5">
+                              <Clock className="h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">{appointment.time}</span>
                             </div>
                           </div>
-                          <p className="text-gray-700 mt-3">
+                          <p className="text-gray-700 mt-3 text-sm truncate">
                             <span className="font-medium">Reason:</span> {appointment.reason}
                           </p>
                         </div>
@@ -259,19 +264,19 @@ const PatientDashboard = () => {
 
           {/* Available Doctors */}
           <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Available Doctors</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Available Doctors</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {doctors.slice(0, 3).map((doctor) => (
                 <div key={doctor.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                   <div className="flex items-center space-x-3 mb-3">
                     <img
                       src={doctor.image}
                       alt={doctor.name}
-                      className="w-12 h-12 rounded-full object-cover"
+                      className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover flex-shrink-0"
                     />
-                    <div>
-                      <h3 className="font-semibold text-gray-900">{doctor.name}</h3>
-                      <p className="text-sm text-primary-600">{doctor.specialization}</p>
+                    <div className="min-w-0">
+                      <h3 className="font-semibold text-gray-900 truncate text-sm sm:text-base">{doctor.name}</h3>
+                      <p className="text-xs sm:text-sm text-primary-600 truncate">{doctor.specialization}</p>
                     </div>
                   </div>
                   <p className="text-xs text-gray-500 mb-3">{doctor.experience} experience</p>

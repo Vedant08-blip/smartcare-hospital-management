@@ -65,28 +65,28 @@ const AdminProfile = () => {
       <Navbar isAuthenticated={true} userRole="admin" />
       <Sidebar userRole="admin" />
 
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-5xl mx-auto">
 
           {/* Header */}
-          <div className="mb-10">
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="mb-6 sm:mb-10">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
               Admin Profile
             </h1>
-            <p className="text-gray-600 mt-1">
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">
               Manage and update your account details
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-8">
 
             {/* Top Section */}
-            <div className="flex flex-col md:flex-row justify-between items-center mb-10">
-              <div className="flex items-center space-x-6">
+            <div className="flex flex-col md:flex-row justify-between items-center mb-6 sm:mb-10">
+              <div className="flex flex-col sm:flex-row items-center sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
 
                 {/* Profile Image */}
                 <div className="relative">
-                  <div className="w-28 h-28 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden shadow">
+                  <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-primary-100 flex items-center justify-center overflow-hidden shadow">
                     {formData.image ? (
                       <img
                         src={formData.image}
@@ -94,13 +94,13 @@ const AdminProfile = () => {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Shield className="h-14 w-14 text-primary-600" />
+                      <Shield className="h-10 w-10 sm:h-14 sm:w-14 text-primary-600" />
                     )}
                   </div>
 
                   {isEditing && (
-                    <label className="absolute bottom-1 right-1 bg-white p-2 rounded-full shadow cursor-pointer">
-                      <Camera className="h-4 w-4 text-gray-600" />
+                    <label className="absolute bottom-0 right-0 bg-white p-1.5 sm:p-2 rounded-full shadow cursor-pointer">
+                      <Camera className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
                       <input
                         type="file"
                         accept="image/*"
@@ -111,11 +111,11 @@ const AdminProfile = () => {
                   )}
                 </div>
 
-                <div>
-                  <h2 className="text-2xl font-semibold">
+                <div className="text-center sm:text-left">
+                  <h2 className="text-xl sm:text-2xl font-semibold">
                     {formData.name}
                   </h2>
-                  <p className="text-primary-600 font-medium">
+                  <p className="text-primary-600 font-medium text-sm sm:text-base">
                     {formData.role}
                   </p>
                 </div>
@@ -125,23 +125,23 @@ const AdminProfile = () => {
               {!isEditing ? (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="mt-6 md:mt-0 px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center space-x-2 transition"
+                  className="mt-4 sm:mt-0 px-4 sm:px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center space-x-2 transition text-sm"
                 >
                   <Edit className="h-4 w-4" />
                   <span>Edit Profile</span>
                 </button>
               ) : (
-                <div className="flex space-x-3 mt-6 md:mt-0">
+                <div className="flex space-x-2 sm:space-x-3 mt-4 sm:mt-0">
                   <button
                     onClick={handleSave}
-                    className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition"
+                    className="px-4 sm:px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center space-x-2 transition text-sm"
                   >
                     <Save className="h-4 w-4" />
                     <span>Save</span>
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center space-x-2 transition"
+                    className="px-4 sm:px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg flex items-center space-x-2 transition text-sm"
                   >
                     <X className="h-4 w-4" />
                     <span>Cancel</span>
@@ -151,7 +151,7 @@ const AdminProfile = () => {
             </div>
 
             {/* Form Section */}
-            <div className="grid md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
 
               {/* Name */}
               <div>

@@ -2,6 +2,8 @@ import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
+import { useToast } from '../../components/Toast';
+import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { appointmentsAPI, authAPI, doctorsAPI } from '../../services/api';
 import { Calendar, Clock, User, FileText, Phone, Mail, Stethoscope } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -9,11 +11,13 @@ import { useState, useEffect } from 'react';
 const DoctorDashboard = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const currentUser = authAPI.getCurrentUser();
@@ -30,18 +34,19 @@ const DoctorDashboard = () => {
 
   const fetchDoctorAndAppointments = async (userId) => {
     try {
-      // Get all appointments without filtering by doctor first
-      // We'll show all appointments for demonstration
-      const data = await appointmentsAPI.getAll();
+      // Get appointments for this doctor
+      const data = await appointmentsAPI.getAll('doctor', userId);
       
       if (data && Array.isArray(data)) {
         setAppointments(data);
       } else {
         setAppointments([]);
       }
-    } catch (error) {
-      console.error('Error fetching appointments:', error);
-      setAppointments([]);
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching appointments:', err);
+      setError(err.message || 'Failed to load appointments');
+      toast.error('Failed to load appointments. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -63,10 +68,10 @@ const DoctorDashboard = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      alert('Appointment marked as completed!');
+      toast.success('Appointment marked as completed!');
     } catch (error) {
       console.error('Error updating appointment:', error);
-      alert('Failed to update appointment. Please try again.');
+      toast.error('Failed to update appointment. Please try again.');
     } finally {
       setUpdating(false);
     }
@@ -87,15 +92,15 @@ const DoctorDashboard = () => {
       <Navbar isAuthenticated={true} userRole="doctor" />
       <Sidebar userRole="doctor" />
       
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Doctor Dashboard</h1>
-            <p className="text-gray-600">Welcome Back Doctor</p>
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Doctor Dashboard</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Welcome Back Doctor</p>
           </div>
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
@@ -133,11 +138,11 @@ const DoctorDashboard = () => {
 
           {/* Today's Appointments */}
           <div className="card">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Today's Appointments</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Today's Appointments</h2>
             
             {todayAppointments.length === 0 ? (
-              <div className="text-center py-12">
-                <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="text-center py-8 sm:py-12">
+                <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-600">No appointments scheduled for today</p>
               </div>
             ) : (
@@ -145,58 +150,56 @@ const DoctorDashboard = () => {
                 {todayAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
-                    className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow"
+                    className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
                   >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-4">
+                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
                           <div className="flex items-center space-x-2">
-                            <User className="h-5 w-5 text-gray-400" />
-                            <h3 className="text-lg font-semibold text-gray-900">
+                            <User className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                               {appointment.patientName}
                             </h3>
                           </div>
                           <StatusBadge status={appointment.status} />
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div className="flex items-center space-x-2 text-gray-600">
-                            <Calendar className="h-4 w-4" />
-                            <span>{appointment.date}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4">
+                          <div className="flex items-center space-x-2 text-gray-600 text-sm">
+                            <Calendar className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{appointment.date}</span>
                           </div>
-                          <div className="flex items-center space-x-2 text-gray-600">
-                            <Clock className="h-4 w-4" />
-                            <span>{appointment.time}</span>
+                          <div className="flex items-center space-x-2 text-gray-600 text-sm">
+                            <Clock className="h-4 w-4 flex-shrink-0" />
+                            <span className="truncate">{appointment.time}</span>
                           </div>
                         </div>
                         
-                        <p className="text-gray-700 mb-4">
+                        <p className="text-gray-700 mb-4 text-sm truncate">
                           <span className="font-medium">Reason:</span> {appointment.reason}
                         </p>
                         
-                        <div className="flex space-x-4">
+                        <div className="flex flex-wrap gap-3 sm:gap-4">
                           <button className="text-sm text-primary-600 hover:text-primary-700 flex items-center space-x-1">
                             <Phone className="h-4 w-4" />
-                            <span>Call Patient</span>
+                            <span>Call</span>
                           </button>
                           <button className="text-sm text-primary-600 hover:text-primary-700 flex items-center space-x-1">
                             <Mail className="h-4 w-4" />
-                            <span>Send Message</span>
+                            <span>Message</span>
                           </button>
                         </div>
                       </div>
                       
-                      <div className="ml-4">
-                        <button 
-                          className="btn-primary text-sm"
-                          onClick={() => {
-                            setSelectedAppointment(appointment);
-                            setShowDetailsModal(true);
-                          }}
-                        >
-                          View Details
-                        </button>
-                      </div>
+                      <button 
+                        className="btn-primary text-sm whitespace-nowrap self-start"
+                        onClick={() => {
+                          setSelectedAppointment(appointment);
+                          setShowDetailsModal(true);
+                        }}
+                      >
+                        View Details
+                      </button>
                     </div>
                   </div>
                 ))}

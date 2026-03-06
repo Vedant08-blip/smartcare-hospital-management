@@ -86,8 +86,8 @@ const AdminDashboard = () => {
       <Navbar isAuthenticated userRole="admin" />
       <Sidebar userRole="admin" />
 
-      <div className="ml-64 pt-16 p-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
           {/* =============================
                DASHBOARD VIEW
@@ -95,78 +95,86 @@ const AdminDashboard = () => {
           {currentView === 'dashboard' && (
             <>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
                   Admin Dashboard
                 </h1>
-                <p className="text-gray-500">
+                <p className="text-gray-500 text-sm sm:text-base">
                   Manage doctors, patients and appointments easily.
                 </p>
               </div>
 
               {/* Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard
-                  title="Total Doctors"
-                  value={adminStats.totalDoctors}
-                  icon={Stethoscope}
-                />
-                <StatCard
-                  title="Total Patients"
-                  value={adminStats.totalPatients}
-                  icon={Users}
-                />
-                <StatCard
-                  title="Appointments Today"
-                  value={adminStats.appointmentsToday}
-                  icon={Calendar}
-                />
-                <StatCard
-                  title="Total Appointments"
-                  value={adminStats.totalAppointments}
-                  icon={Activity}
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                <div className="animate-fadeInUp stagger-1">
+                  <StatCard
+                    title="Total Doctors"
+                    value={adminStats.totalDoctors}
+                    icon={Stethoscope}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-2">
+                  <StatCard
+                    title="Total Patients"
+                    value={adminStats.totalPatients}
+                    icon={Users}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-3">
+                  <StatCard
+                    title="Appointments Today"
+                    value={adminStats.appointmentsToday}
+                    icon={Calendar}
+                  />
+                </div>
+                <div className="animate-fadeInUp stagger-4">
+                  <StatCard
+                    title="Total Appointments"
+                    value={adminStats.totalAppointments}
+                    icon={Activity}
+                  />
+                </div>
               </div>
 
               {/* Charts */}
-              <div className="grid lg:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-xl shadow">
-                  <h3 className="font-semibold mb-4">
+              <div className="grid lg:grid-cols-2 gap-4 sm:gap-6">
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow animate-fadeInUp stagger-5">
+                  <h3 className="font-semibold mb-4 text-sm sm:text-base">
                     Monthly Appointments
                   </h3>
-                  <div className="h-72">
-                    <Bar data={barChartData} />
+                  <div className="h-56 sm:h-72">
+                    <Bar data={barChartData} options={{ responsive: true, maintainAspectRatio: false }} />
                   </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow">
-                  <h3 className="font-semibold mb-4">
+                <div className="bg-white p-4 sm:p-6 rounded-xl shadow animate-fadeInUp stagger-6">
+                  <h3 className="font-semibold mb-4 text-sm sm:text-base">
                     Appointment Status
                   </h3>
-                  <div className="h-72 flex items-center justify-center">
-                    <Doughnut data={statusChartData} />
+                  <div className="h-56 sm:h-72 flex items-center justify-center">
+                    <Doughnut data={statusChartData} options={{ responsive: true, maintainAspectRatio: false }} />
                   </div>
                 </div>
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-white p-6 rounded-xl shadow">
-                <h3 className="font-semibold mb-4">Quick Actions</h3>
+              <div className="bg-white p-4 sm:p-6 rounded-xl shadow animate-fadeInUp stagger-7">
+                <h3 className="font-semibold mb-4 text-sm sm:text-base">Quick Actions</h3>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <button
                     onClick={() => setCurrentView('addPatient')}
-                    className="p-5 bg-green-50 rounded-xl hover:bg-green-100 transition"
+                    className="p-4 sm:p-5 bg-green-50 rounded-xl hover:bg-green-100 transition-all duration-300 hover:scale-105 hover:shadow-lg text-left"
                   >
-                    <Users className="mb-2 text-green-600" />
-                    Add Patient
+                    <Users className="mb-2 text-green-600 h-5 w-5 sm:h-6 sm:w-6" />
+                    <span className="font-medium text-sm sm:text-base">Add Patient</span>
                   </button>
 
                   <button
                     onClick={() => setCurrentView('appointments')}
-                    className="p-5 bg-purple-50 rounded-xl hover:bg-purple-100 transition"
+                    className="p-4 sm:p-5 bg-purple-50 hover:bg-purple-100 transition-all duration-300 rounded-xl hover:scale-105 hover:shadow-lg text-left"
                   >
-                    <Calendar className="mb-2 text-purple-600" />
-                    View Appointments
+                    <Calendar className="mb-2 text-purple-600 h-5 w-5 sm:h-6 sm:w-6" />
+                    <span className="font-medium text-sm sm:text-base">View Appointments</span>
                   </button>
                 </div>
               </div>

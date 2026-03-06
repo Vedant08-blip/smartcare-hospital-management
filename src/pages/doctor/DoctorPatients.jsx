@@ -30,56 +30,56 @@ const DoctorPatients = () => {
       <Navbar isAuthenticated={true} userRole="doctor" />
       <Sidebar userRole="doctor" />
       
-      <div className="ml-64 pt-16 p-8">
+      <div className="lg:ml-64 pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">My Patients</h1>
-              <p className="text-gray-600">View patient information and records</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Patients</h1>
+              <p className="text-gray-600 text-sm sm:text-base">View patient information and records</p>
             </div>
-            <div className="relative">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search patients..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none w-full sm:w-64"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredPatients.map((patient) => (
               <div key={patient.id} className="card hover:shadow-lg transition-shadow">
-                <div className="flex items-start space-x-4 mb-4">
+                <div className="flex items-start space-x-3 sm:space-x-4 mb-4">
                   <img
                     src={patient.image}
                     alt={patient.name}
-                    className="w-16 h-16 rounded-full object-cover"
+                    className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover flex-shrink-0"
                   />
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">
                       {patient.name}
                     </h3>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <Droplet className="h-4 w-4 text-red-600" />
-                      <span className="text-sm text-gray-600">Blood Group: {patient.bloodGroup}</span>
+                    <div className="flex items-center space-x-2">
+                      <Droplet className="h-3 w-3 sm:h-4 sm:w-4 text-red-600 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-gray-600 truncate">Blood Group: {patient.bloodGroup}</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Mail className="h-4 w-4" />
-                    <span>{patient.email}</span>
+                <div className="space-y-1.5 sm:space-y-2 mb-4">
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                    <Mail className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{patient.email}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <Phone className="h-4 w-4" />
-                    <span>{patient.phone}</span>
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                    <Phone className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                    <span className="truncate">{patient.phone}</span>
                   </div>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
-                    <User className="h-4 w-4" />
+                  <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
+                    <User className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                     <span>{patient.age} years, {patient.gender}</span>
                   </div>
                 </div>
@@ -95,8 +95,8 @@ const DoctorPatients = () => {
           </div>
 
           {filteredPatients.length === 0 && (
-            <div className="text-center py-12">
-              <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <div className="text-center py-8 sm:py-12">
+              <User className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-600">No patients found</p>
             </div>
           )}
