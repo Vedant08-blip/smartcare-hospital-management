@@ -139,6 +139,50 @@ const handleLocalLogin = (email, password, role) => {
 const handleLocalGetDoctors = () => localDoctors;
 const handleLocalGetPatients = () => localPatients;
 
+const handleLocalCreatePatient = (data) => {
+  const newPatient = {
+    id: Date.now(),
+    ...data,
+    medicalRecords: [],
+    allergies: [],
+    chronicConditions: []
+  };
+  localPatients.push(newPatient);
+  
+  // Also create a user account for the patient
+  const newUser = {
+    id: Date.now(),
+    email: data.email,
+    password: 'SmartPatient2024!', // Default password
+    role: 'patient',
+    name: data.name
+  };
+  LOCAL_USERS.push(newUser);
+  
+  console.log('[API] New patient created:', newPatient);
+  return newPatient;
+};
+
+const handleLocalUpdatePatient = (id, data) => {
+  const index = localPatients.findIndex(p => p.id === id);
+  if (index === -1) {
+    throw new Error('Patient not found');
+  }
+  localPatients[index] = { ...localPatients[index], ...data };
+  console.log('[API] Patient updated:', id, data);
+  return localPatients[index];
+};
+
+const handleLocalDeletePatient = (id) => {
+  const index = localPatients.findIndex(p => p.id === id);
+  if (index === -1) {
+    throw new Error('Patient not found');
+  }
+  localPatients.splice(index, 1);
+  console.log('[API] Patient deleted:', id);
+  return { success: true, message: 'Patient deleted successfully' };
+};
+
 const handleLocalGetAppointments = (role, userId) => {
   // Reload from localStorage to get latest appointments
   const stored = localStorage.getItem('localAppointments');
@@ -331,9 +375,36 @@ export const patientsAPI = {
     }
   },
   getById: (id) => fetchWithAuth(`/patients/${id}`),
-  create: (data) => fetchWithAuth('/patients', { method: 'POST', body: JSON.stringify(data) }),
-  update: (id, data) => fetchWithAuth(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
-  delete: (id) => fetchWithAuth(`/patients/${id}`, { method: 'DELETE' }),
+  create: async (data) => {
+    try {
+      return await fetchWithAuth('/patients', { method: 'POST', body: JSON.stringify(data) });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalCreatePatient(data);
+      }
+      throw error;
+    }
+  },
+  update: async (id, data) => {
+    try {
+      return await fetchWithAuth(`/patients/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalUpdatePatient(id, data);
+      }
+      throw error;
+    }
+  },
+  delete: async (id) => {
+    try {
+      return await fetchWithAuth(`/patients/${id}`, { method: 'DELETE' });
+    } catch (error) {
+      if (error.message === 'USE_LOCAL_FALLBACK') {
+        return handleLocalDeletePatient(id);
+      }
+      throw error;
+    }
+  },
 };
 
 // Appointments API
