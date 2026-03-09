@@ -168,7 +168,6 @@ smartcare-backend/
 ## 📝 Notes
 
 - The backend stores data in memory - data will reset when the server restarts
-- JWT tokens expire after 24 hours
 - CORS is enabled for local development
 - Frontend and backend run on different ports (5173 and 5002)
 
