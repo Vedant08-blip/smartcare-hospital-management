@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../../components/Navbar";
 import Sidebar from "../../components/Sidebar";
-import { patients as initialPatients } from "../../data/dummyData";
-import { MapPin, Droplet, Plus, Edit, Trash2 } from "lucide-react";
+import { patientsAPI } from "../../services/api";
+import { useToast } from "../../components/Toast";
+import { MapPin, Droplet, Plus, Edit, Trash2, Loader2 } from "lucide-react";
 
 const ManagePatients = () => {
-  const [patients, setPatients] = useState(initialPatients);
+  const [patients, setPatients] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -21,18 +25,46 @@ const ManagePatients = () => {
     image: "https://via.placeholder.com/100"
   });
 
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  const fetchPatients = async () => {
+    try {
+      const data = await patientsAPI.getAll();
+      setPatients(data || []);
+    } catch (error) {
+      console.error('Error fetching patients:', error);
+      toast.error('Failed to load patients');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   // Add Patient
-  const handleAddPatient = () => {
-    const newPatient = {
-      id: Date.now(),
-      ...formData
-    };
-    setPatients([...patients, newPatient]);
-    closeModal();
+  const handleAddPatient = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const newPatient = await patientsAPI.create({
+        ...formData,
+        age: parseInt(formData.age),
+        image: `https://ui-avatars.com/api/?name=${encodeURIComponent(formData.name)}&background=00bcd4&color=fff&size=128`
+      });
+      
+      setPatients([...patients, newPatient]);
+      closeModal();
+      toast.success('Patient added successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to add patient');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Edit Patient
@@ -43,18 +75,37 @@ const ManagePatients = () => {
     setIsOpen(true);
   };
 
-  const handleUpdatePatient = () => {
-    const updatedPatients = patients.map((p) =>
-      p.id === currentPatient.id ? { ...formData, id: p.id } : p
-    );
-    setPatients(updatedPatients);
-    closeModal();
+  const handleUpdatePatient = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    try {
+      const updated = await patientsAPI.update(currentPatient.id, formData);
+      
+      setPatients(patients.map((p) =>
+        p.id === currentPatient.id ? { ...p, ...updated } : p
+      ));
+      closeModal();
+      toast.success('Patient updated successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to update patient');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Delete Patient
-  const handleDeletePatient = (id) => {
-    const filtered = patients.filter((p) => p.id !== id);
-    setPatients(filtered);
+  const handleDeletePatient = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this patient?')) return;
+    
+    try {
+      await patientsAPI.delete(id);
+      const filtered = patients.filter((p) => p.id !== id);
+      setPatients(filtered);
+      toast.success('Patient deleted successfully!');
+    } catch (error) {
+      toast.error(error.message || 'Failed to delete patient');
+    }
   };
 
   const closeModal = () => {
@@ -97,77 +148,89 @@ const ManagePatients = () => {
             </button>
           </div>
 
-          {/* Table - Horizontal scroll wrapper for mobile */}
-          <div className="card overflow-x-auto">
-            <table className="w-full min-w-[600px]">
-              <thead>
-                <tr className="border-b">
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Patient</th>
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Contact</th>
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Age</th>
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Gender</th>
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Blood</th>
-                  <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {patients.map((patient) => (
-                  <tr key={patient.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 sm:py-4 px-3 sm:px-6">
-                      <div className="flex items-center space-x-2 sm:space-x-3">
-                        <img
-                          src={patient.image}
-                          alt={patient.name}
-                          className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="font-medium text-sm sm:text-base truncate">{patient.name}</p>
-                          <p className="text-xs sm:text-sm text-gray-500 truncate">{patient.email}</p>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">
-                      <p className="truncate">{patient.phone}</p>
-                      <p className="text-xs text-gray-500 flex items-center mt-1">
-                        <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                        <span className="truncate">{patient.address}</span>
-                      </p>
-                    </td>
-
-                    <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">{patient.age}</td>
-                    <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">{patient.gender}</td>
-
-                    <td className="py-3 sm:py-4 px-3 sm:px-6">
-                      <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full inline-flex items-center">
-                        <Droplet className="h-3 w-3 mr-1" />
-                        {patient.bloodGroup}
-                      </span>
-                    </td>
-
-                    <td className="py-3 sm:py-4 px-3 sm:px-6">
-                      <div className="flex space-x-1 sm:space-x-2">
-                        <button
-                          onClick={() => handleEditPatient(patient)}
-                          className="p-1.5 sm:p-2 hover:bg-blue-50 rounded-lg text-blue-600"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </button>
-
-                        <button
-                          onClick={() => handleDeletePatient(patient.id)}
-                          className="p-1.5 sm:p-2 hover:bg-red-50 rounded-lg text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </div>
-                    </td>
+          {/* Loading State */}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+              <span className="ml-2 text-gray-600">Loading patients...</span>
+            </div>
+          ) : patients.length === 0 ? (
+            <div className="card text-center py-12">
+              <p className="text-gray-600">No patients found</p>
+            </div>
+          ) : (
+            /* Table - Horizontal scroll wrapper for mobile */
+            <div className="card overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b">
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Patient</th>
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Contact</th>
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Age</th>
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Gender</th>
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Blood</th>
+                    <th className="py-3 sm:py-4 px-3 sm:px-6 text-left text-xs sm:text-sm font-semibold">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+
+                <tbody>
+                  {patients.map((patient) => (
+                    <tr key={patient.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 sm:py-4 px-3 sm:px-6">
+                        <div className="flex items-center space-x-2 sm:space-x-3">
+                          <img
+                            src={patient.image}
+                            alt={patient.name}
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm sm:text-base truncate">{patient.name}</p>
+                            <p className="text-xs sm:text-sm text-gray-500 truncate">{patient.email}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">
+                        <p className="truncate">{patient.phone}</p>
+                        <p className="text-xs text-gray-500 flex items-center mt-1">
+                          <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
+                          <span className="truncate">{patient.address}</span>
+                        </p>
+                      </td>
+
+                      <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">{patient.age}</td>
+                      <td className="py-3 sm:py-4 px-3 sm:px-6 text-sm">{patient.gender}</td>
+
+                      <td className="py-3 sm:py-4 px-3 sm:px-6">
+                        <span className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full inline-flex items-center">
+                          <Droplet className="h-3 w-3 mr-1" />
+                          {patient.bloodGroup}
+                        </span>
+                      </td>
+
+                      <td className="py-3 sm:py-4 px-3 sm:px-6">
+                        <div className="flex space-x-1 sm:space-x-2">
+                          <button
+                            onClick={() => handleEditPatient(patient)}
+                            className="p-1.5 sm:p-2 hover:bg-blue-50 rounded-lg text-blue-600"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </button>
+
+                          <button
+                            onClick={() => handleDeletePatient(patient.id)}
+                            className="p-1.5 sm:p-2 hover:bg-red-50 rounded-lg text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 
@@ -179,43 +242,100 @@ const ManagePatients = () => {
               {isEditing ? "Edit Patient" : "Add Patient"}
             </h2>
 
-            <div className="space-y-3">
-              {["name", "email", "phone", "address", "age", "gender", "bloodGroup"].map((field) => (
+            <form onSubmit={isEditing ? handleUpdatePatient : handleAddPatient} className="space-y-3">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full Name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                className="input-field w-full text-sm"
+              />
+              <input
+                type="email"
+                name="email"
+                placeholder="Email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="input-field w-full text-sm"
+              />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                className="input-field w-full text-sm"
+              />
+              <input
+                type="text"
+                name="address"
+                placeholder="Address"
+                value={formData.address}
+                onChange={handleChange}
+                className="input-field w-full text-sm"
+              />
+              <div className="grid grid-cols-2 gap-3">
                 <input
-                  key={field}
-                  name={field}
-                  placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                  value={formData[field]}
+                  type="number"
+                  name="age"
+                  placeholder="Age"
+                  required
+                  value={formData.age}
                   onChange={handleChange}
                   className="input-field w-full text-sm"
                 />
-              ))}
-            </div>
-
-            <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2 mt-4">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-gray-200 rounded-lg text-sm"
+                <select
+                  name="gender"
+                  required
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="input-field w-full text-sm"
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <select
+                name="bloodGroup"
+                required
+                value={formData.bloodGroup}
+                onChange={handleChange}
+                className="input-field w-full text-sm"
               >
-                Cancel
-              </button>
+                <option value="">Select Blood Group</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
 
-              {isEditing ? (
+              <div className="flex flex-col sm:flex-row justify-end gap-2 sm:space-x-2 mt-4">
                 <button
-                  onClick={handleUpdatePatient}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+                  type="button"
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-gray-200 rounded-lg text-sm"
                 >
-                  Update
+                  Cancel
                 </button>
-              ) : (
                 <button
-                  onClick={handleAddPatient}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm"
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm disabled:opacity-50"
                 >
-                  Add
+                  {isSubmitting ? 'Saving...' : (isEditing ? 'Update' : 'Add')}
                 </button>
-              )}
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
