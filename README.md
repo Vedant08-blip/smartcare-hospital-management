@@ -72,9 +72,9 @@ The application will start on `http://localhost:5173`
 
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | admin@smartcare.com | 123456 |
-| Doctor | doctor@smartcare.com | 123456 |
-| Patient | patient@email.com | 123456 |
+| Admin | admin@smartcare.com | SmartAdmin2024! |
+| Doctor | doctor@smartcare.com | SmartDoc2024! |
+| Patient | patient@email.com | SmartPatient2024! |
 
 ## 📡 API Endpoints
 
