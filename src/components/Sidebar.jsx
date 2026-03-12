@@ -68,13 +68,9 @@ const Sidebar = ({ userRole }) => {
       {/* Mobile menu toggle button - Fixed positioning */}
       <button
         type="button"
-        className="lg:hidden fixed top-4 left-4 z-[70] p-2.5 rounded-md bg-white shadow-lg text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all duration-200 active:scale-95"
+        className="lg:hidden fixed top-20 left-4 z-[70] p-2.5 rounded-md bg-white shadow-lg text-gray-700 hover:bg-gray-100 border border-gray-200 transition-all duration-200 active:scale-95"
         onClick={() => setIsOpen(!isOpen)}
         aria-label="Toggle menu"
-        style={{ 
-          top: '1rem',
-          left: '1rem'
-        }}
       >
         {isOpen ? (
           <X className="h-6 w-6" />
@@ -100,7 +96,7 @@ const Sidebar = ({ userRole }) => {
           lg:translate-x-0 lg:top-16 lg:h-[calc(100vh-4rem)] lg:z-30
         `}
       >
-        <div className="h-full flex flex-col pt-16 lg:pt-4 overflow-y-auto">
+        <div className="h-full flex flex-col pt-20 lg:pt-4 overflow-y-auto">
           <nav className="flex-1 px-3 py-4 space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -139,4 +135,3 @@ const Sidebar = ({ userRole }) => {
 };
 
 export default Sidebar;
-
