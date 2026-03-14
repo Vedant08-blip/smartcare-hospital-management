@@ -79,9 +79,19 @@ const PatientDashboard = () => {
     }
   };
 
-  // Filter appointments
-  const upcomingAppointments = appointments.filter(apt => apt.status === 'Pending');
-  const completedAppointments = appointments.filter(apt => apt.status === 'Completed');
+  // Filter and sort appointments by date/time
+  const upcomingAppointments = appointments
+    .filter(apt => apt.status === 'Pending')
+    .sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      return dateCompare !== 0 ? dateCompare : a.time.localeCompare(b.time);
+    });
+  const completedAppointments = appointments
+    .filter(apt => apt.status === 'Completed')
+    .sort((a, b) => {
+      const dateCompare = b.date.localeCompare(a.date);
+      return dateCompare !== 0 ? dateCompare : b.time.localeCompare(a.time);
+    });
 
   return (
     <div className="min-h-screen bg-gray-50">

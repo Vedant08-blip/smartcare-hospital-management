@@ -80,12 +80,17 @@ const DoctorDashboard = () => {
   // Get today's date in YYYY-MM-DD format
   const today = new Date().toISOString().split('T')[0];
   
-  // Filter today's appointments
-  const todayAppointments = appointments.filter(apt => apt.date === today);
+  // Show upcoming appointments (today + future), sorted by date/time
+  const upcomingAppointments = appointments
+    .filter(apt => apt.date >= today)
+    .sort((a, b) => {
+      const dateCompare = a.date.localeCompare(b.date);
+      return dateCompare !== 0 ? dateCompare : a.time.localeCompare(b.time);
+    });
   
-  // Stats
-  const pendingCount = todayAppointments.filter(apt => apt.status === 'Pending').length;
-  const completedCount = todayAppointments.filter(apt => apt.status === 'Completed').length;
+  // Stats (upcoming only)
+  const pendingCount = upcomingAppointments.filter(apt => apt.status === 'Pending').length;
+  const completedCount = upcomingAppointments.filter(apt => apt.status === 'Completed').length;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -104,8 +109,8 @@ const DoctorDashboard = () => {
             <div className="card">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600 mb-1">Today's Appointments</p>
-                  <p className="text-3xl font-bold text-gray-900">{todayAppointments.length}</p>
+                  <p className="text-sm text-gray-600 mb-1">Upcoming Appointments</p>
+                  <p className="text-3xl font-bold text-gray-900">{upcomingAppointments.length}</p>
                 </div>
                 <div className="p-3 bg-primary-50 rounded-lg">
                   <Calendar className="h-8 w-8 text-primary-600" />
@@ -136,18 +141,18 @@ const DoctorDashboard = () => {
             </div>
           </div>
 
-          {/* Today's Appointments */}
+          {/* Upcoming Appointments */}
           <div className="card">
-            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Today's Appointments</h2>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">Upcoming Appointments</h2>
             
-            {todayAppointments.length === 0 ? (
+            {upcomingAppointments.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <Calendar className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">No appointments scheduled for today</p>
+                <p className="text-gray-600">No upcoming appointments scheduled</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {todayAppointments.map((appointment) => (
+                {upcomingAppointments.map((appointment) => (
                   <div
                     key={appointment.id}
                     className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
