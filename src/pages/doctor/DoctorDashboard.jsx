@@ -5,6 +5,7 @@ import StatusBadge from '../../components/StatusBadge';
 import { useToast } from '../../components/Toast';
 import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { appointmentsAPI, authAPI, doctorsAPI } from '../../services/api';
+import { formatDate, formatTime } from '../../utils/date';
 import { Calendar, Clock, User, FileText, Phone, Mail, Stethoscope } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -239,11 +240,11 @@ const DoctorDashboard = () => {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 mb-4">
                           <div className="flex items-center space-x-2 text-gray-600 text-sm">
                             <Calendar className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{appointment.date}</span>
+                            <span className="truncate">{formatDate(appointment.date)}</span>
                           </div>
                           <div className="flex items-center space-x-2 text-gray-600 text-sm">
                             <Clock className="h-4 w-4 flex-shrink-0" />
-                            <span className="truncate">{appointment.time}</span>
+                            <span className="truncate">{formatTime(appointment.time)}</span>
                           </div>
                         </div>
                         
@@ -303,11 +304,11 @@ const DoctorDashboard = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Calendar className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.date}</span>
+                <span>{formatDate(selectedAppointment.date)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.time}</span>
+                <span>{formatTime(selectedAppointment.time)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Stethoscope className="h-5 w-5 text-gray-400" />

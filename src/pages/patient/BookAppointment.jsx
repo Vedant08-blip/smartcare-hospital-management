@@ -6,6 +6,7 @@ import Modal from "../../components/Modal";
 import { authAPI, appointmentsAPI, doctorsAPI } from "../../services/api";
 import { useToast } from "../../components/Toast";
 import { LoadingSpinner } from "../../components/Loading";
+import { formatDate, formatTime } from "../../utils/date";
 import {
   Stethoscope,
   Calendar,
@@ -413,21 +414,14 @@ const BookAppointment = () => {
                     <SummaryItem
                       icon={Calendar}
                       label="Date"
-                      value={new Date(
-                        appointment.date
-                      ).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      value={formatDate(appointment.date)}
                     />
                   )}
                   {appointment.time && (
                     <SummaryItem
                       icon={Clock}
                       label="Time"
-                      value={appointment.time}
+                      value={formatTime(appointment.time)}
                     />
                   )}
                 </div>
@@ -454,7 +448,7 @@ const BookAppointment = () => {
           </p>
 
           <p className="text-sm text-gray-600 mb-6">
-            {appointment.date} at {appointment.time}
+            {formatDate(appointment.date)} at {formatTime(appointment.time)}
           </p>
 
           <button
@@ -483,4 +477,3 @@ const SummaryItem = ({ icon: Icon, label, value }) => (
 );
 
 export default BookAppointment;
-

@@ -2,6 +2,7 @@ import Navbar from '../../components/Navbar';
 import Sidebar from '../../components/Sidebar';
 import StatusBadge from '../../components/StatusBadge';
 import { appointmentsAPI, authAPI } from '../../services/api';
+import { formatDate, formatTime } from '../../utils/date';
 import { Calendar, Clock, Stethoscope, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -90,13 +91,13 @@ const MyAppointments = () => {
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center space-x-1 sm:space-x-2 text-gray-600 text-sm">
                           <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate">{appointment.date}</span>
+                          <span className="truncate">{formatDate(appointment.date)}</span>
                         </div>
                       </td>
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center space-x-1 sm:space-x-2 text-gray-600 text-sm">
                           <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate">{appointment.time}</span>
+                          <span className="truncate">{formatTime(appointment.time)}</span>
                         </div>
                       </td>
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
