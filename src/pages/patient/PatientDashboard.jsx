@@ -8,6 +8,7 @@ import { useToast } from '../../components/Toast';
 import { LoadingOverlay, EmptyState, ErrorState } from '../../components/Loading';
 import { doctors } from '../../data/dummyData';
 import { appointmentsAPI, authAPI } from '../../services/api';
+import { formatDate, formatTime } from '../../utils/date';
 import { Calendar, Clock, Stethoscope, Plus, FileText, X } from 'lucide-react';
 
 const PatientDashboard = () => {
@@ -271,12 +272,12 @@ const PatientDashboard = () => {
                               <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
                                 <div className="flex items-center space-x-1.5">
                                   <Calendar className="h-4 w-4 flex-shrink-0" />
-                                  <span className="truncate">{appointment.date}</span>
-                                </div>
-                                <div className="flex items-center space-x-1.5">
-                                  <Clock className="h-4 w-4 flex-shrink-0" />
-                                  <span className="truncate">{appointment.time}</span>
-                                </div>
+                                <span className="truncate">{formatDate(appointment.date)}</span>
+                              </div>
+                              <div className="flex items-center space-x-1.5">
+                                <Clock className="h-4 w-4 flex-shrink-0" />
+                                <span className="truncate">{formatTime(appointment.time)}</span>
+                              </div>
                               </div>
                               <p className="text-gray-700 mt-3 text-sm truncate">
                                 <span className="font-medium">Reason:</span> {appointment.reason}
@@ -325,11 +326,11 @@ const PatientDashboard = () => {
                           <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
                             <div className="flex items-center space-x-1.5">
                               <Calendar className="h-4 w-4 flex-shrink-0" />
-                              <span className="truncate">{appointment.date}</span>
+                              <span className="truncate">{formatDate(appointment.date)}</span>
                             </div>
                             <div className="flex items-center space-x-1.5">
                               <Clock className="h-4 w-4 flex-shrink-0" />
-                              <span className="truncate">{appointment.time}</span>
+                              <span className="truncate">{formatTime(appointment.time)}</span>
                             </div>
                           </div>
                           <p className="text-gray-700 mt-3 text-sm truncate">
@@ -399,11 +400,11 @@ const PatientDashboard = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Calendar className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.date}</span>
+                <span>{formatDate(selectedAppointment.date)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.time}</span>
+                <span>{formatTime(selectedAppointment.time)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Stethoscope className="h-5 w-5 text-gray-400" />

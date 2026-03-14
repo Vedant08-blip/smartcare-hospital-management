@@ -4,6 +4,7 @@ import Modal from '../../components/Modal';
 import StatusBadge from '../../components/StatusBadge';
 import { appointmentsAPI, authAPI } from '../../services/api';
 import { useToast } from '../../components/Toast';
+import { formatDate, formatTime } from '../../utils/date';
 import { Calendar, Clock, User, Search, Stethoscope } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
@@ -143,13 +144,13 @@ const DoctorAppointments = () => {
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center space-x-1 sm:space-x-2 text-gray-600 text-sm">
                           <Calendar className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate">{appointment.date}</span>
+                          <span className="truncate">{formatDate(appointment.date)}</span>
                         </div>
                       </td>
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
                         <div className="flex items-center space-x-1 sm:space-x-2 text-gray-600 text-sm">
                           <Clock className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-                          <span className="truncate">{appointment.time}</span>
+                          <span className="truncate">{formatTime(appointment.time)}</span>
                         </div>
                       </td>
                       <td className="py-3 sm:py-4 px-3 sm:px-6">
@@ -197,11 +198,11 @@ const DoctorAppointments = () => {
             <div className="space-y-3">
               <div className="flex items-center space-x-3">
                 <Calendar className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.date}</span>
+                <span>{formatDate(selectedAppointment.date)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Clock className="h-5 w-5 text-gray-400" />
-                <span>{selectedAppointment.time}</span>
+                <span>{formatTime(selectedAppointment.time)}</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Stethoscope className="h-5 w-5 text-gray-400" />
