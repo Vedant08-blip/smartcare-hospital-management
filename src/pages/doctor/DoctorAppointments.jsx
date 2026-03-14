@@ -14,6 +14,7 @@ const DoctorAppointments = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [updating, setUpdating] = useState(false);
+  const [statusBanner, setStatusBanner] = useState(null);
   const toast = useToast();
 
   useEffect(() => {
@@ -39,15 +40,15 @@ const DoctorAppointments = () => {
     }
   };
 
-  const markAsCompleted = async (appointmentId) => {
+  const updateStatus = async (appointmentId, status) => {
     setUpdating(true);
     try {
-      await appointmentsAPI.update(appointmentId, { status: 'Completed' });
+      await appointmentsAPI.update(appointmentId, { status });
       
       // Update local state
       setAppointments(prevAppointments =>
         prevAppointments.map(apt =>
-          apt.id === appointmentId ? { ...apt, status: 'Completed' } : apt
+          apt.id === appointmentId ? { ...apt, status } : apt
         )
       );
       
@@ -55,7 +56,11 @@ const DoctorAppointments = () => {
       setShowDetailsModal(false);
       setSelectedAppointment(null);
       
-      toast.success('Appointment marked as completed!');
+      const bannerMessage = status === 'Confirmed'
+        ? 'Appointment confirmed. The patient will see the updated status.'
+        : 'Appointment marked as completed.';
+      toast.success(bannerMessage);
+      setStatusBanner({ type: 'success', message: bannerMessage });
     } catch (error) {
       console.error('Error updating appointment:', error);
       toast.error('Failed to update appointment. Please try again.');
@@ -80,6 +85,18 @@ const DoctorAppointments = () => {
       
       <div className="lg:ml-64 pt-20 sm:pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
+          {statusBanner && (
+            <div className="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 flex items-center justify-between">
+              <span>{statusBanner.message}</span>
+              <button
+                onClick={() => setStatusBanner(null)}
+                className="text-green-700 hover:text-green-900"
+                aria-label="Dismiss notification"
+              >
+                X
+              </button>
+            </div>
+          )}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">My Appointments</h1>
@@ -199,12 +216,36 @@ const DoctorAppointments = () => {
             {selectedAppointment.status === 'Pending' && (
               <div className="mt-6 flex space-x-3">
                 <button
-                  onClick={() => markAsCompleted(selectedAppointment.id)}
+                  onClick={() => updateStatus(selectedAppointment.id, 'Confirmed')}
+                  disabled={updating}
+                  className="flex-1 bg-blue-100 text-blue-700 py-2 rounded-lg hover:bg-blue-200 disabled:bg-blue-50 disabled:text-blue-300"
+                >
+                  {updating ? 'Updating...' : 'Confirm Appointment'}
+                </button>
+                <button
+                  onClick={() => updateStatus(selectedAppointment.id, 'Completed')}
                   disabled={updating}
                   className="flex-1 bg-green-100 text-green-700 py-2 rounded-lg hover:bg-green-200 disabled:bg-green-50 disabled:text-green-300"
                 >
                   {updating ? 'Updating...' : 'Mark as Completed'}
                 </button>
+              </div>
+            )}
+            {selectedAppointment.status === 'Confirmed' && (
+              <div className="mt-6 flex space-x-3">
+                <button
+                  onClick={() => updateStatus(selectedAppointment.id, 'Completed')}
+                  disabled={updating}
+                  className="flex-1 bg-green-100 text-green-700 py-2 rounded-lg hover:bg-green-200 disabled:bg-green-50 disabled:text-green-300"
+                >
+                  {updating ? 'Updating...' : 'Mark as Completed'}
+                </button>
+              </div>
+            )}
+            {selectedAppointment.status === 'Cancelled' && selectedAppointment.cancelReason && (
+              <div className="mt-6">
+                <p className="text-sm text-gray-500 mb-1">Cancel reason</p>
+                <p className="text-sm text-gray-800">{selectedAppointment.cancelReason}</p>
               </div>
             )}
           </div>

@@ -19,6 +19,9 @@ const PatientDashboard = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [statusBanner, setStatusBanner] = useState(null);
+  const [dateFilter, setDateFilter] = useState('all');
   const toast = useToast();
 
   useEffect(() => {
@@ -58,19 +61,26 @@ const PatientDashboard = () => {
   const cancelAppointment = async (appointmentId) => {
     setCancelling(true);
     try {
-      await appointmentsAPI.cancel(appointmentId);
+      await appointmentsAPI.cancel(appointmentId, { cancelReason });
       
-      // Update local state to remove the cancelled appointment
+      // Update local state to mark cancelled
       setAppointments(prevAppointments => 
-        prevAppointments.filter(apt => apt.id !== appointmentId)
+        prevAppointments.map(apt =>
+          apt.id === appointmentId ? { ...apt, status: 'Cancelled', cancelReason } : apt
+        )
       );
       
       // Close the modal
       setShowDetailsModal(false);
       setSelectedAppointment(null);
+      setCancelReason('');
       
       // Show success toast
       toast.success('Appointment cancelled successfully!');
+      setStatusBanner({
+        type: 'info',
+        message: 'Your appointment was cancelled. You can book a new slot anytime.'
+      });
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       toast.error('Failed to cancel appointment. Please try again.');
@@ -79,19 +89,31 @@ const PatientDashboard = () => {
     }
   };
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   // Filter and sort appointments by date/time
   const upcomingAppointments = appointments
-    .filter(apt => apt.status === 'Pending')
+    .filter(apt => (apt.status === 'Pending' || apt.status === 'Confirmed') && apt.date >= todayStr)
     .sort((a, b) => {
       const dateCompare = a.date.localeCompare(b.date);
       return dateCompare !== 0 ? dateCompare : a.time.localeCompare(b.time);
     });
   const completedAppointments = appointments
-    .filter(apt => apt.status === 'Completed')
+    .filter(apt => apt.status === 'Completed' || apt.status === 'Cancelled')
     .sort((a, b) => {
       const dateCompare = b.date.localeCompare(a.date);
       return dateCompare !== 0 ? dateCompare : b.time.localeCompare(a.time);
     });
+
+  const sevenDays = new Date();
+  sevenDays.setDate(sevenDays.getDate() + 6);
+  const sevenDaysStr = sevenDays.toISOString().split('T')[0];
+  const upcomingNext7Days = upcomingAppointments.filter(apt => apt.date <= sevenDaysStr);
+  const visibleUpcoming = dateFilter === 'today'
+    ? upcomingAppointments.filter(apt => apt.date === todayStr)
+    : dateFilter === '7days'
+      ? upcomingNext7Days
+      : upcomingAppointments;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,6 +122,18 @@ const PatientDashboard = () => {
       
       <div className="lg:ml-64 pt-20 sm:pt-16 px-3 sm:px-4 md:px-6 lg:px-8 pb-10">
         <div className="max-w-7xl mx-auto">
+          {statusBanner && (
+            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 flex items-center justify-between">
+              <span>{statusBanner.message}</span>
+              <button
+                onClick={() => setStatusBanner(null)}
+                className="text-blue-700 hover:text-blue-900"
+                aria-label="Dismiss notification"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          )}
           <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Patient Dashboard</h1>
             <p className="text-gray-600 text-sm sm:text-base">Welcome back! Manage your appointments and health records.</p>
@@ -181,49 +215,87 @@ const PatientDashboard = () => {
                    </div>
               ) : (
                 <div className="space-y-4">
-                  {upcomingAppointments
-                    .slice(0, 3)
-                    .map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <p className="text-sm text-gray-600">
+                      Upcoming in next 7 days: <span className="font-semibold">{upcomingNext7Days.length}</span>
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setDateFilter('all')}
+                        className={`text-xs sm:text-sm font-medium px-3 py-1 rounded-full border ${
+                          dateFilter === 'all' ? 'border-primary-500 text-primary-600' : 'border-gray-200 text-gray-600'
+                        }`}
                       >
-                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-                              <Stethoscope className="h-5 w-5 text-primary-600 flex-shrink-0" />
-                              <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
-                                {appointment.doctorName}
-                              </h3>
-                              <StatusBadge status={appointment.status} />
-                            </div>
-                            <p className="text-sm text-primary-600 mb-3 truncate">{appointment.specialization}</p>
-                            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
-                              <div className="flex items-center space-x-1.5">
-                                <Calendar className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">{appointment.date}</span>
+                        All Upcoming
+                      </button>
+                      <button
+                        onClick={() => setDateFilter('7days')}
+                        className={`text-xs sm:text-sm font-medium px-3 py-1 rounded-full border ${
+                          dateFilter === '7days' ? 'border-primary-500 text-primary-600' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        Next 7 Days
+                      </button>
+                      <button
+                        onClick={() => setDateFilter('today')}
+                        className={`text-xs sm:text-sm font-medium px-3 py-1 rounded-full border ${
+                          dateFilter === 'today' ? 'border-primary-500 text-primary-600' : 'border-gray-200 text-gray-600'
+                        }`}
+                      >
+                        Today
+                      </button>
+                    </div>
+                  </div>
+                  {visibleUpcoming.length === 0 ? (
+                    <div className="text-center py-8">
+                      <p className="text-gray-600">No appointments match this filter.</p>
+                    </div>
+                  ) : (
+                    visibleUpcoming
+                      .slice(0, 3)
+                      .map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:shadow-md transition-shadow overflow-hidden"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
+                                <Stethoscope className="h-5 w-5 text-primary-600 flex-shrink-0" />
+                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate">
+                                  {appointment.doctorName}
+                                </h3>
+                                <StatusBadge status={appointment.status} />
                               </div>
-                              <div className="flex items-center space-x-1.5">
-                                <Clock className="h-4 w-4 flex-shrink-0" />
-                                <span className="truncate">{appointment.time}</span>
+                              <p className="text-sm text-primary-600 mb-3 truncate">{appointment.specialization}</p>
+                              <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-gray-600 text-sm">
+                                <div className="flex items-center space-x-1.5">
+                                  <Calendar className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">{appointment.date}</span>
+                                </div>
+                                <div className="flex items-center space-x-1.5">
+                                  <Clock className="h-4 w-4 flex-shrink-0" />
+                                  <span className="truncate">{appointment.time}</span>
+                                </div>
                               </div>
+                              <p className="text-gray-700 mt-3 text-sm truncate">
+                                <span className="font-medium">Reason:</span> {appointment.reason}
+                              </p>
                             </div>
-                            <p className="text-gray-700 mt-3 text-sm truncate">
-                              <span className="font-medium">Reason:</span> {appointment.reason}
-                            </p>
+                            <button 
+                              className="btn-secondary text-sm whitespace-nowrap self-start sm:self-center"
+                              onClick={() => {
+                                setSelectedAppointment(appointment);
+                                setShowDetailsModal(true);
+                                setCancelReason('');
+                              }}
+                            >
+                              View Details
+                            </button>
                           </div>
-                          <button 
-                            className="btn-secondary text-sm whitespace-nowrap self-start sm:self-center"
-                            onClick={() => {
-                              setSelectedAppointment(appointment);
-                              setShowDetailsModal(true);
-                            }}
-                          >
-                            View Details
-                          </button>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                  )}
                 </div>
               )
             ) : (
@@ -341,13 +413,29 @@ const PatientDashboard = () => {
 
             {selectedAppointment.status === 'Pending' && (
               <div className="mt-6 flex space-x-3">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cancel reason</label>
+                  <textarea
+                    value={cancelReason}
+                    onChange={(e) => setCancelReason(e.target.value)}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                    placeholder="Please share why you are cancelling"
+                  />
+                </div>
                 <button
                   onClick={() => cancelAppointment(selectedAppointment.id)}
-                  disabled={cancelling}
-                  className="flex-1 bg-red-100 text-red-700 py-2 rounded-lg hover:bg-red-200 disabled:bg-red-50 disabled:text-red-300"
+                  disabled={cancelling || cancelReason.trim().length === 0}
+                  className="h-fit self-end bg-red-100 text-red-700 py-2 px-4 rounded-lg hover:bg-red-200 disabled:bg-red-50 disabled:text-red-300"
                 >
                   {cancelling ? 'Cancelling...' : 'Cancel Appointment'}
                 </button>
+              </div>
+            )}
+            {selectedAppointment.status === 'Cancelled' && selectedAppointment.cancelReason && (
+              <div className="mt-6">
+                <p className="text-sm text-gray-500 mb-1">Cancel reason</p>
+                <p className="text-sm text-gray-800">{selectedAppointment.cancelReason}</p>
               </div>
             )}
           </div>

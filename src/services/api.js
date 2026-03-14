@@ -252,7 +252,7 @@ const handleLocalStats = () => ({
   completedAppointments: localAppointments.filter(a => a.status === 'Completed').length
 });
 
-const handleLocalCancelAppointment = (id) => {
+const handleLocalCancelAppointment = (id, data = {}) => {
   // Reload from localStorage to get latest appointments
   const stored = localStorage.getItem('localAppointments');
   if (stored) {
@@ -264,14 +264,18 @@ const handleLocalCancelAppointment = (id) => {
     throw new Error('Appointment not found');
   }
   
-  // Remove the appointment from the list
-  localAppointments.splice(index, 1);
+  // Mark the appointment as cancelled (keep history)
+  localAppointments[index] = {
+    ...localAppointments[index],
+    status: 'Cancelled',
+    cancelReason: data.cancelReason || localAppointments[index].cancelReason || ''
+  };
   
   // Save to localStorage for persistence
   localStorage.setItem('localAppointments', JSON.stringify(localAppointments));
   console.log('[API] Appointment cancelled:', id);
   
-  return { success: true, message: 'Appointment cancelled successfully' };
+  return localAppointments[index];
 };
 
 const handleLocalUpdateAppointment = (id, data) => {
@@ -449,12 +453,15 @@ export const appointmentsAPI = {
       throw error;
     }
   },
-  cancel: async (id) => {
+  cancel: async (id, data = {}) => {
     try {
-      return await fetchWithAuth(`/appointments/${id}`, { method: 'DELETE' });
+      return await fetchWithAuth(`/appointments/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'Cancelled', ...data })
+      });
     } catch (error) {
       if (error.message === 'USE_LOCAL_FALLBACK') {
-        return handleLocalCancelAppointment(id);
+        return handleLocalCancelAppointment(id, data);
       }
       throw error;
     }
