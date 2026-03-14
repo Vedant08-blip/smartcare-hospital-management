@@ -78,6 +78,11 @@ const USER_ID_TO_PATIENT_ID = {
   4: 2  // Jane Smith (user id 4) -> patient id 2
 };
 
+// Map user IDs to doctor IDs for appointment filtering (local mode)
+const USER_ID_TO_DOCTOR_ID = {
+  2: 1 // Dr. Sarah Johnson (user id 2) -> doctor id 1
+};
+
 // Debug function to log API calls
 const logApiCall = (method, endpoint, status, error = null) => {
   console.log(`[API] ${method} ${endpoint} - Status: ${status}${error ? ' - Error: ' + error : ''}`);
@@ -192,15 +197,16 @@ const handleLocalGetAppointments = (role, userId) => {
   
   // Convert userId to patientId if needed
   const patientId = USER_ID_TO_PATIENT_ID[userId] || userId;
+  const doctorId = USER_ID_TO_DOCTOR_ID[userId] || userId;
   
   let filtered = [...localAppointments];
   
   if (role === 'patient') {
     filtered = localAppointments.filter(a => a.patientId === patientId);
   } else if (role === 'doctor') {
-    filtered = localAppointments.filter(a => a.doctorId === userId);
+    filtered = localAppointments.filter(a => a.doctorId === doctorId);
   }
-  console.log('[API] Getting appointments for', role, 'userId:', userId, 'patientId:', patientId, 'Total:', filtered.length);
+  console.log('[API] Getting appointments for', role, 'userId:', userId, 'patientId:', patientId, 'doctorId:', doctorId, 'Total:', filtered.length);
   return filtered;
 };
 
@@ -470,4 +476,3 @@ export const statsAPI = {
 };
 
 export default { auth: authAPI, doctors: doctorsAPI, patients: patientsAPI, appointments: appointmentsAPI, stats: statsAPI };
-
