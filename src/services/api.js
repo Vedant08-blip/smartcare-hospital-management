@@ -3,7 +3,7 @@
 
 // Try to use tunnel, but will fallback to local mode
 const API_URL = 'https://smartcare-backend-vedant.loca.lt/api';
-const USE_LOCAL_FALLBACK = true; // Set to true to enable offline fallback
+const USE_LOCAL_FALLBACK = false; // Disabled for MongoDB production use
 
 // Local dummy data for fallback
 const localDoctors = [
