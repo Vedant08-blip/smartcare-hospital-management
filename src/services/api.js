@@ -1,8 +1,8 @@
 // SmartCare API Service - Connects frontend to backend API
 // Uses localtunnel URL for cross-network access with fallback to local data
 
-// Try to use tunnel, but will fallback to local mode
-const API_URL = 'https://smartcare-backend-vedant.loca.lt/api';
+// Direct local backend (MongoDB production)
+const API_URL = 'http://localhost:5000/api';
 const USE_LOCAL_FALLBACK = false; // Disabled for MongoDB production use
 
 // Local dummy data for fallback
