@@ -2,7 +2,8 @@
 // Uses localtunnel URL for cross-network access with fallback to local data
 
 // Direct local backend (MongoDB production)
-const API_URL = 'http://localhost:5000/api';
+// IMPORTANT: Change this to your production backend URL when deploying
+const API_URL = 'http://localhost:5001/api';
 const USE_LOCAL_FALLBACK = false; // Disabled for MongoDB production use
 
 // Local dummy data for fallback

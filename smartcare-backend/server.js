@@ -19,6 +19,20 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 
 // Middleware
 app.use(cors());
+
+// Custom CORS headers to ensure they are set before any other middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
+
 app.use(express.json());
 
 // Rate limiting configuration
@@ -55,18 +69,8 @@ const rateLimit = (req, res, next) => {
   next();
 };
 
+// Rate limiting middleware applied after CORS
 app.use(rateLimit);
-
-// Handle CORS for localtunnel
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    return res.status(200).json({});
-  }
-  next();
-});
 
 // Input validation helper
 const validateInput = (data, schema) => {
